@@ -178,7 +178,7 @@ function host(){
  });
  peer.on('error',e=>setStatus('Fehler: '+e.type));
 }
-function setOpt(k,v){if(!isHost||inGame)return;opts[k]=v;rebuild();}
+function setOpt(k,v){if(!isHost||inGame)return;if(k==='mode'&&v==='duel'&&order.filter(id=>players[id]).length<4)return;opts[k]=v;rebuild();}
 function setName(v){if(!isHost)return;opts.name=v.trim().slice(0,18)||DEFAULT_NAME;if(!inGame)rebuild();}
 function rebuild(){assign();renderHostOpts();sendSetupAll();}
 function assign(){
@@ -189,11 +189,13 @@ function assign(){
  setup={mode,name:opts.name,teams,handicap,members:{}};for(const t of teams)for(const m of t.members)setup.members[m.id]=m;
 }
 function renderHostOpts(){
- const n=order.filter(id=>players[id]).length;
+ const n=order.filter(id=>players[id]).length,duelOk=n>=4;
+ if(opts.mode==='duel'&&!duelOk){opts.mode='one';assign();sendSetupAll();}
  $('modeOne').classList.toggle('sel',opts.mode==='one');$('modeDuel').classList.toggle('sel',opts.mode==='duel');
- $('duelNote').textContent=opts.mode==='duel'?(n<4?'⚠️ Duell erst ab 4 Spielern – bis dahin spielt ihr eine Kneipe.':(setup.handicap?'Ungleiche Teams: das größere Team läuft langsamer ('+Math.round((1-setup.handicap.speed)*100)+' %).':'')):'';
+ $('modeDuel').disabled=!duelOk;$('modeDuel').textContent=duelOk?'⚔️ Duell':'⚔️ Duell (ab 4)';
+ $('duelNote').textContent=!duelOk?(n>=2?'Duell braucht mindestens 4 Spieler – aktuell '+n+'.':''):(opts.mode==='duel'&&setup.handicap?'Ungleiche Teams: das größere Team läuft langsamer ('+Math.round((1-setup.handicap.speed)*100)+' %).':'');
  [3,5,7].forEach(k=>$('len'+k).classList.toggle('sel',opts.len===k));
- $('startBtn').textContent='▶ Schicht starten ('+opts.len+' Min)';$('startBtn').disabled=n<1;
+ $('startBtn').textContent='▶ Schicht starten ('+(opts.mode==='duel'?'Duell':'Eine Kneipe')+', '+opts.len+' Min)';$('startBtn').disabled=n<1;
 }
 function setupMsgFor(id){return{type:'setup',mode:setup.mode,name:setup.name,teams:setup.teams,handicap:setup.handicap,len:opts.len,you:{id,team:players[id].team},running:inGame};}
 function sendSetupTo(id){if(id==='me')applySetup(setupMsgFor('me'));else if(conns[id]&&conns[id].open)conns[id].send(setupMsgFor(id));}
