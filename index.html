@@ -29,7 +29,7 @@
  #hud .t{font-size:1.5em;font-weight:bold;color:#ffc94a}#hud b{color:#fff;font-size:1.15em}
  .rep{height:10px;background:#000;border-radius:5px;overflow:hidden;border:2px solid #000;margin-top:.2em}.rep div{height:100%;background:linear-gradient(90deg,#e63946,#ffc94a,#b5e853);transition:width .3s}
  #cv{flex:1;display:block;touch-action:none;width:100%}
- #actBtn{position:absolute;right:.8em;bottom:max(1em,env(safe-area-inset-bottom));width:6.2em;height:6.2em;border-radius:50%;font-size:.95em;padding:.3em;background:#ff5c8a;touch-action:none;line-height:1.15;z-index:3}
+ #actBtn{position:absolute;right:.8em;bottom:max(1em,env(safe-area-inset-bottom));width:6.2em;height:6.2em;border-radius:50%;font-size:.95em;padding:.3em;background:#ff5c8a;touch-action:none;line-height:1.15;z-index:3;white-space:pre-line}
  #toast{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:2em;font-weight:bold;color:#ffc94a;text-shadow:4px 4px 0 #000;pointer-events:none;opacity:0;transition:opacity .3s;z-index:5;padding:0 .5em}
  #toast.on{opacity:1}
  #log{position:absolute;left:.6em;bottom:max(1em,env(safe-area-inset-bottom));right:8em;font-size:.8em;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none}
@@ -92,7 +92,7 @@
 'use strict';
 // ================= Konstanten =================
 const PREFIX='loeschmeile-',MAX=8,TICK=50,COUNT=3,LENS={3:180,5:300,7:420},SPERR=45;
-const W=600,H=1000,PR=22,SPEED=250,REACH=80,BASE_PAT=30,DRINK=6,TIP_BASE=5,TOP=150,BOT=890;
+const W=600,H=1000,PR=22,SPEED=250,REACH=80,BASE_PAT=35,DRINK=6,TIP_BASE=5,TOP=150,BOT=890;
 const TYPES={pils:{n:'Pils',c:'#f2b53a',rate:.28,lo:.76,hi:.9},weizen:{n:'Weizen',c:'#e8d27a',rate:.36,lo:.62,hi:.78},radler:{n:'Radler',c:'#ffe66d',rate:.44,lo:.84,hi:.95}};
 const TK=Object.keys(TYPES);
 const SHELF={x:80,y:100},SINK={x:300,y:940};
@@ -116,7 +116,6 @@ const conns={},players={};let order=[];
 let opts={mode:'one',len:3,name:DEFAULT_NAME};
 let setup={mode:'one',name:DEFAULT_NAME,teams:[],handicap:null,members:{}};
 let ROUND=180,inGame=false,S=null,simTimer=null;
-
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
 function setStatus(t){$('status').textContent=t;}
 function readName(){const n=$('name').value.trim().slice(0,12);if(!n){setStatus('Bitte zuerst einen Namen eingeben');$('name').focus();}return n;}
@@ -220,8 +219,8 @@ function startGame(){
 }
 function hostTick(){if(!S||S.state==='end')return;simTick(TICK/1000);if(S.state==='end')return;const snap=makeSnap();broadcast(snap);applySnap(snap);}
 function nearest(pos,floor){
- const cand=[{k:'shelf',o:SHELF,r:REACH+25},{k:'sink',o:SINK,r:REACH+30}];
- TAPS.forEach((t,i)=>cand.push({k:'tap',i,o:t,r:REACH+10}));TABLES.forEach((t,i)=>cand.push({k:'table',i,o:t,r:REACH+15}));(floor||[]).forEach((f,i)=>cand.push({k:'floor',i,o:f,r:REACH-25}));
+ const cand=[{k:'shelf',o:SHELF,r:REACH+40},{k:'sink',o:SINK,r:REACH+45}];
+ TAPS.forEach((t,i)=>cand.push({k:'tap',i,o:t,r:REACH+40}));TABLES.forEach((t,i)=>cand.push({k:'table',i,o:t,r:REACH+15}));(floor||[]).forEach((f,i)=>cand.push({k:'floor',i,o:f,r:REACH-25}));
  let best=null,bd=1;for(const c of cand){const d=dist(pos,c.o);if(d<c.r&&d/c.r<bd){bd=d/c.r;best=c;}}return best;
 }
 function actDown(id){
@@ -276,7 +275,7 @@ function simTick(dt){
   if(P.slip<=0&&Math.hypot(P.vx,P.vy)>60)for(const q of S.puddles)if(dist(P,q)<30){P.slip=.7;break;}
  }
  for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){const A=list[i],B=list[j],d=dist(A,B);if(d<PR*2&&d>0){const o=(PR*2-d)/2,nx=(B.x-A.x)/d,ny=(B.y-A.y)/d;A.x-=nx*o;A.y-=ny*o;B.x+=nx*o;B.y+=ny*o;}}
- if(S.t>=S.nextGuest){const free=S.tables.map((t,i)=>(!t.g&&!t.dirty)?i:-1).filter(i=>i>=0);if(free.length)spawnGuest(pick(free));S.nextGuest=S.t+clamp(16/n,3.5,10)*rnd(.8,1.2);}
+ if(S.t>=S.nextGuest){const free=S.tables.map((t,i)=>(!t.g&&!t.dirty)?i:-1).filter(i=>i>=0);if(free.length)spawnGuest(pick(free));S.nextGuest=S.t+clamp(20/n,4,10)*rnd(.8,1.2);}
  S.tables.forEach((T,i)=>{const g=T.g;if(!g)return;
   if(g.state==='drink'){if(S.t>=g.until){T.g=null;T.dirty=true;}return;}
   g.pat-=dt*(blas?2:1);if(g.pat<=0){T.g=null;S.lost++;S.rep=Math.max(0,S.rep-6);S.ev.push({e:'lost',x:TABLES[i].x,y:TABLES[i].y-60});}});
@@ -343,8 +342,6 @@ function hintFor(p){
  return '…';
 }
 function updateActBtn(){const p=myP();$('actBtn').textContent=hintFor(p);$('actBtn').style.display=p?'block':'none';}
-
-// ---------- Rendering ----------
 function frame(now){
  if(!inGame){rafOn=false;return;}requestAnimationFrame(frame);
  const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;const tm=now/1000;
@@ -388,7 +385,7 @@ function drawGlass(x,y,k,t,q,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx
  if(k==='beer'){ctx.fillStyle=TYPES[t].c;ctx.fillRect(-11,-8,22,25);ctx.fillStyle='#fff8e7';ctx.fillRect(-11,-14,22,7);}ctx.restore();}
 function drawItem(x,y,k,t,q,s){drawGlass(x,y,k,t,q,s);}
 function drawPlayer(p,v,tm){
- const [id,,,carry,ct,cq,prog,act,ai,,team]=p,m=setup.members[id],col=m?m.c:'#aaa',name=m?m.name:'?',mine=id===myId,x=v.x,y=v.y,moving=false;
+ const [id,,,carry,ct,cq,prog,act,ai,,team]=p,m=setup.members[id],col=m?m.c:'#aaa',name=m?m.name:'?',mine=id===myId,x=v.x,y=v.y;
  ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(x,y+PR*.9,PR*.9,PR*.35,0,0,7);ctx.fill();
  if(mine){ctx.strokeStyle='#ffc94a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,PR+7,0,7);ctx.stroke();}
  ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,PR,0,7);ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.stroke();
@@ -400,8 +397,6 @@ function drawPlayer(p,v,tm){
   if(act==='pour'&&ai>=0){const T=TYPES[TAPS[ai].t];ctx.fillStyle='rgba(181,232,83,.9)';ctx.fillRect(bx+80*T.lo,by,80*(T.hi-T.lo),12);ctx.fillStyle=T.c;ctx.fillRect(bx,by+3,80*Math.min(1,prog),6);}
   else{ctx.fillStyle=act==='wash'?'#8fd3f4':'#ffc94a';ctx.fillRect(bx,by,80*Math.min(1,prog),12);}}
 }
-
-// ---------- Steuerung ----------
 function stickVec(s){let x=(s.x-s.ox)/50,y=(s.y-s.oy)/50;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l;}return{x,y,l:Math.min(1,l)};}
 function bindControls(){
  const c=$('cv'),b=$('actBtn');
