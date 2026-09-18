@@ -7,68 +7,35 @@
 <title>Löschmeilenduell</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
- * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
- html,body { margin:0; height:100%; overflow:hidden; position:fixed; width:100%; font-family:"Comic Sans MS","Chalkboard SE","Marker Felt",system-ui,sans-serif; background:#2b1a0e; color:#fff8e7; }
- .screen { display:none; position:absolute; inset:0; flex-direction:column; gap:.7em; padding:max(1em,env(safe-area-inset-top)) 1.1em 1.2em; overflow-y:auto; }
- .screen.active { display:flex; }
- h1 { margin:.2em 0; font-size:2em; text-align:center; color:#ffc94a; text-shadow:3px 3px 0 #7a3b12,-1px -1px 0 #000; transform:rotate(-2deg); }
- h1 small { display:block; font-size:.45em; color:#f7e7b4; transform:rotate(1deg); }
- input,button { font:inherit; font-size:1.15em; padding:.65em; border-radius:1em; border:3px solid #000; width:100%; }
- input { background:#4a2c16; color:#fff8e7; }
- button { background:#ffc94a; color:#2b1a0e; font-weight:bold; box-shadow:0 4px 0 #000; cursor:pointer; }
- button:active { transform:translateY(3px); box-shadow:0 1px 0 #000; }
- button.secondary { background:#8fd3f4; } button.sel { background:#b5e853; } button:disabled { opacity:.45; }
- .opt { display:flex; gap:.5em; } .opt button { flex:1; padding:.5em; font-size:1em; }
- .small { color:#d9c7a7; font-size:.9em; text-align:center; }
- .code { font-size:2.2em; letter-spacing:.25em; font-weight:bold; color:#ffc94a; text-align:center; }
- .pub { border:3px solid #ffc94a; border-radius:1em; padding:.5em .8em; background:rgba(0,0,0,.3); }
- .pub h3 { margin:0 0 .3em; color:#ffc94a; }
- .member { display:flex; justify-content:space-between; padding:.15em 0; } .member span { color:#d9c7a7; font-size:.9em; }
- #myRole { text-align:center; font-size:1.05em; padding:.6em; background:#7a3b12; border-radius:1em; border:3px solid #000; }
- label.tog { display:flex; align-items:center; justify-content:space-between; gap:.6em; background:rgba(0,0,0,.3); padding:.5em .8em; border-radius:1em; font-size:1em; }
- label.tog input { width:auto; transform:scale(1.6); }
- #s-game { padding:0; gap:0; }
- #hud { flex:none; padding:max(.5em,env(safe-area-inset-top)) .8em .4em; background:#1a0f07; border-bottom:3px solid #000; display:flex; justify-content:space-between; align-items:center; gap:.5em; }
- #hud .t { font-size:1.5em; font-weight:bold; color:#ffc94a; } #hud .me { text-align:right; font-size:.85em; color:#d9c7a7; } #hud .me b { color:#fff; font-size:1.1em; }
- #pubbar { flex:none; padding:.35em .8em; background:#3b2412; display:flex; justify-content:space-between; align-items:center; gap:.5em; font-size:.85em; border-bottom:3px solid #000; }
- .rep { height:12px; background:#000; border-radius:6px; overflow:hidden; flex:1; border:2px solid #000; min-width:50px; } .rep div { height:100%; background:linear-gradient(90deg,#e63946,#ffc94a,#b5e853); transition:width .3s; }
- #tabs { flex:none; display:flex; gap:.3em; padding:.3em .5em; background:#1a0f07; } #tabs button { padding:.4em .2em; font-size:.9em; border-radius:.7em; position:relative; }
- .b { background:#e63946; color:#fff; border-radius:1em; font-size:.75em; padding:.1em .45em; border:2px solid #000; }
- #tabs .b { position:absolute; top:-.5em; right:-.3em; }
- #stage { flex:1; position:relative; overflow:hidden; touch-action:none; display:flex; flex-direction:column; }
- #log { flex:none; padding:.3em .8em; font-size:.8em; background:#1a0f07; color:#d9c7a7; min-height:2.4em; border-top:3px solid #000; }
- #toast { position:absolute; left:0; right:0; top:38%; text-align:center; font-size:2.2em; font-weight:bold; color:#ffc94a; text-shadow:4px 4px 0 #000; pointer-events:none; opacity:0; transition:opacity .3s; z-index:5; }
- #toast.on { opacity:1; }
- .station { flex:1; display:flex; flex-direction:column; padding:.6em; gap:.5em; }
- .glasswrap { flex:1; display:flex; align-items:center; justify-content:center; touch-action:none; }
- .glass { position:relative; width:150px; height:260px; border:5px solid #dfe7ee; border-top-width:3px; border-radius:6px 6px 22px 22px; background:rgba(255,255,255,.08); overflow:hidden; }
- .glass .beer { position:absolute; left:0; right:0; bottom:0; height:0; }
- .glass .foam { position:absolute; left:0; right:0; height:0; background:#fff8e7; border-radius:0 0 8px 8px; }
- .glass .zone { position:absolute; left:0; right:0; border-top:2px dashed rgba(181,232,83,.9); border-bottom:2px dashed rgba(181,232,83,.9); background:rgba(181,232,83,.15); }
- .glass .fz { border-color:rgba(255,255,255,.7); background:rgba(255,255,255,.12); }
- .glass .dirt { position:absolute; inset:0; background:radial-gradient(circle at 30% 40%,rgba(90,60,20,.9) 0 18px,transparent 20px),radial-gradient(circle at 70% 70%,rgba(90,60,20,.9) 0 22px,transparent 24px),radial-gradient(circle at 55% 20%,rgba(90,60,20,.8) 0 14px,transparent 16px); }
- .row { display:flex; gap:.5em; } .row button { flex:1; padding:.5em .3em; font-size:1em; }
- .typebtn.sel { outline:4px solid #fff; }
- .bar { height:16px; background:#000; border-radius:8px; overflow:hidden; border:2px solid #000; } .bar div { height:100%; background:#8fd3f4; transition:width .1s linear; }
- .seats { display:grid; grid-template-columns:repeat(5,1fr); gap:.3em; }
- .guest { background:#4a2c16; border:3px solid #000; border-radius:.8em; padding:.3em .2em; text-align:center; font-size:.85em; min-height:6.5em; }
- .guest .f { font-size:1.8em; line-height:1.1; } .guest .o { font-weight:bold; border-radius:.5em; padding:0 .3em; color:#000; display:inline-block; margin:.15em 0; font-size:.85em; }
- .guest .p { height:8px; background:#000; border-radius:4px; overflow:hidden; margin-top:.2em; } .guest .p div { height:100%; transition:width .1s linear; }
- .guest.drink { opacity:.55; } .guest.hot { outline:4px solid #fff; }
- .guest.empty { background:rgba(0,0,0,.25); border-style:dashed; }
- .counter { display:grid; grid-template-columns:repeat(6,1fr); gap:.3em; }
- .beer { background:#1a0f07; border:3px solid #000; border-radius:.6em; padding:.25em; text-align:center; font-size:.75em; touch-action:none; user-select:none; -webkit-user-select:none; }
- .beer .mug { width:34px; height:46px; margin:0 auto .15em; border:3px solid #dfe7ee; border-radius:4px 4px 10px 10px; position:relative; overflow:hidden; background:rgba(255,255,255,.08); }
- .beer .mug i { position:absolute; left:0; right:0; bottom:0; height:78%; } .beer .mug b { position:absolute; left:0; right:0; top:8%; height:14%; background:#fff8e7; }
- .beer.empty { visibility:hidden; }
- #tray { position:absolute; width:70px; height:70px; border-radius:50%; background:#8b5a2b; border:4px solid #000; display:none; align-items:center; justify-content:center; font-size:2em; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 6px 0 #000; z-index:4; }
- .big { flex:1; display:flex; align-items:center; justify-content:center; text-align:center; font-size:1.3em; color:#d9c7a7; padding:1em; }
- .trouble { background:#5a1a1a; border:3px solid #000; border-radius:1em; padding:.6em; text-align:center; font-size:1.2em; touch-action:none; user-select:none; -webkit-user-select:none; }
- .trouble .f { font-size:3em; }
- .vbox { background:rgba(0,0,0,.3); border:3px solid #000; border-radius:1em; padding:.5em .8em; font-size:.9em; }
- #rotate { display:none; position:absolute; inset:0; z-index:99; background:#2b1a0e; align-items:center; justify-content:center; font-size:1.5em; text-align:center; padding:1em; }
- @media (orientation:landscape) and (max-height:500px) { #rotate { display:flex; } }
- ol { padding-left:1.4em; margin:0; } li { padding:.2em 0; }
+ *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+ html,body{margin:0;height:100%;overflow:hidden;position:fixed;width:100%;font-family:"Comic Sans MS","Chalkboard SE","Marker Felt",system-ui,sans-serif;background:#2b1a0e;color:#fff8e7}
+ .screen{display:none;position:absolute;inset:0;flex-direction:column;gap:.7em;padding:max(1em,env(safe-area-inset-top)) 1.1em 1.2em;overflow-y:auto}
+ .screen.active{display:flex}
+ h1{margin:.2em 0;font-size:2em;text-align:center;color:#ffc94a;text-shadow:3px 3px 0 #7a3b12,-1px -1px 0 #000;transform:rotate(-2deg)}
+ h1 small{display:block;font-size:.45em;color:#f7e7b4;transform:rotate(1deg)}
+ input,button{font:inherit;font-size:1.15em;padding:.65em;border-radius:1em;border:3px solid #000;width:100%}
+ input{background:#4a2c16;color:#fff8e7}
+ button{background:#ffc94a;color:#2b1a0e;font-weight:bold;box-shadow:0 4px 0 #000;cursor:pointer}
+ button:active{transform:translateY(3px);box-shadow:0 1px 0 #000}
+ button.secondary{background:#8fd3f4}button.sel{background:#b5e853}button:disabled{opacity:.45}
+ .opt{display:flex;gap:.5em}.opt button{flex:1;padding:.5em;font-size:1em}
+ .small{color:#d9c7a7;font-size:.9em;text-align:center}
+ .code{font-size:2.2em;letter-spacing:.25em;font-weight:bold;color:#ffc94a;text-align:center}
+ .pub{border:3px solid #ffc94a;border-radius:1em;padding:.5em .8em;background:rgba(0,0,0,.3)}.pub h3{margin:0 0 .3em;color:#ffc94a}
+ .member{display:flex;justify-content:space-between;padding:.15em 0}.member span{color:#d9c7a7;font-size:.9em}
+ #myRole{text-align:center;font-size:1.05em;padding:.6em;background:#7a3b12;border-radius:1em;border:3px solid #000}
+ #s-game{padding:0;gap:0;overflow:hidden}
+ #hud{flex:none;padding:max(.4em,env(safe-area-inset-top)) .8em .3em;background:#1a0f07;border-bottom:3px solid #000;display:flex;justify-content:space-between;align-items:center;gap:.5em;font-size:.9em}
+ #hud .t{font-size:1.5em;font-weight:bold;color:#ffc94a}#hud b{color:#fff;font-size:1.15em}
+ .rep{height:10px;background:#000;border-radius:5px;overflow:hidden;border:2px solid #000;margin-top:.2em}.rep div{height:100%;background:linear-gradient(90deg,#e63946,#ffc94a,#b5e853);transition:width .3s}
+ #cv{flex:1;display:block;touch-action:none;width:100%}
+ #actBtn{position:absolute;right:.8em;bottom:max(1em,env(safe-area-inset-bottom));width:6.2em;height:6.2em;border-radius:50%;font-size:.95em;padding:.3em;background:#ff5c8a;touch-action:none;line-height:1.15;z-index:3}
+ #toast{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:2em;font-weight:bold;color:#ffc94a;text-shadow:4px 4px 0 #000;pointer-events:none;opacity:0;transition:opacity .3s;z-index:5;padding:0 .5em}
+ #toast.on{opacity:1}
+ #log{position:absolute;left:.6em;bottom:max(1em,env(safe-area-inset-bottom));right:8em;font-size:.8em;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none}
+ #rotate{display:none;position:absolute;inset:0;z-index:99;background:#2b1a0e;align-items:center;justify-content:center;font-size:1.5em;text-align:center;padding:1em}
+ @media (orientation:landscape) and (max-height:500px){#rotate{display:flex}}
+ ol{padding-left:1.4em;margin:0}li{padding:.2em 0}
 </style>
 </head>
 <body>
@@ -82,7 +49,7 @@
  <input id="code" placeholder="Raumcode" maxlength="4" autocapitalize="characters" autocomplete="off">
  <button class="secondary" onclick="join()">Beitreten</button>
  <p id="status" class="small"></p>
- <p class="small">Gemeinsam die Kneipe am Laufen halten – und dabei das meiste Trinkgeld kassieren. Bis zu 8 Spieler, Duell ab 4.</p>
+ <p class="small">Alle in einer Kneipe: Glas holen, zapfen, servieren, abräumen, spülen. Jeder trägt ein Ding. Bis zu 8 Spieler, Duell ab 4.</p>
 </section>
 
 <section id="s-wait" class="screen">
@@ -93,10 +60,7 @@
   <p class="small" style="margin:.4em 0 .3em">Spielmodus</p>
   <div class="opt"><button class="secondary" id="modeOne" onclick="setOpt('mode','one')">🍺 Eine Kneipe</button><button class="secondary" id="modeDuel" onclick="setOpt('mode','duel')">⚔️ Duell</button></div>
   <p id="duelNote" class="small"></p>
-  <input id="pubA" placeholder="Name der Kneipe" maxlength="18" oninput="setName(0,this.value)" style="margin-top:.4em">
-  <input id="pubB" placeholder="Name der zweiten Kneipe" maxlength="18" oninput="setName(1,this.value)" style="margin-top:.4em;display:none">
-  <label class="tog" id="vertRow" style="margin-top:.5em;display:none"><span>🎩 Brauereivertreter bei ungerader Zahl</span><input type="checkbox" id="optVert" onchange="setOpt('vert',this.checked)"></label>
-  <label class="tog" style="margin-top:.5em"><span>🔄 Stationswechsel alle 60 s</span><input type="checkbox" id="optRotate" onchange="setOpt('rotate',this.checked)"></label>
+  <input id="pubName" placeholder="Name der Kneipe" maxlength="18" oninput="setName(this.value)" style="margin-top:.4em">
   <p class="small" style="margin:.5em 0 .3em">Länge der Schicht</p>
   <div class="opt"><button class="secondary" id="len3" onclick="setOpt('len',3)">3 Min<br><small>Feierabend</small></button><button class="secondary" id="len5" onclick="setOpt('len',5)">5 Min<br><small>Schicht</small></button><button class="secondary" id="len7" onclick="setOpt('len',7)">7 Min<br><small>Lange Nacht</small></button></div>
   <button id="startBtn" onclick="startGame()" style="margin-top:.6em">▶ Schicht starten</button>
@@ -106,13 +70,11 @@
 </section>
 
 <section id="s-game" class="screen">
- <div id="hud"><div class="t" id="hudTime">3:00</div><div class="me"><b id="hudTip">0 €</b><br><span id="hudMe"></span></div></div>
- <div id="pubbar"><span id="pubName">Kneipe</span><div class="rep"><div id="repBar" style="width:50%"></div></div><span id="pubStat"></span></div>
- <div id="tabs" style="display:none"></div>
- <div id="stage"></div>
- <div id="tray">🍺</div>
- <div id="toast"></div>
+ <div id="hud"><div><div class="t" id="hudTime">3:00</div><div id="hudPub"></div></div><div style="text-align:right"><b id="hudTip">0 €</b><br><span id="hudMe"></span><div class="rep" id="repWrap"><div id="repBar" style="width:60%"></div></div></div></div>
+ <canvas id="cv"></canvas>
+ <button id="actBtn">…</button>
  <div id="log"></div>
+ <div id="toast"></div>
 </section>
 
 <section id="s-end" class="screen">
@@ -125,440 +87,340 @@
  <button id="againBtn" onclick="backToLobby()" style="display:none">Nächste Schicht</button>
  <p id="endNote" class="small">Warten auf den Wirt…</p>
 </section>
+
 <script>
 'use strict';
 // ================= Konstanten =================
-const PREFIX = 'loeschmeile-', MAX = 8, TICK = 100, COUNT = 3;
-const LENS = { 3: 180, 5: 300, 7: 420 };
-const SEATS = 5, COUNTER_MAX = 6, ROTATE_EVERY = 60, BASE_PATIENCE = 32, DRINK_TIME = 6;
-const TIP_BASE = 6, TIP_WASH = 2, TIP_BOUNCE = 5, TIP_KEG = 3, VERT_CD = 40, SPERR = 45;
-const TYPES = { pils: { n: 'Pils', c: '#f2b53a', fill: .24, foam: .05, lvl: [.72, .85] }, weizen: { n: 'Weizen', c: '#e8d27a', fill: .24, foam: .09, lvl: [.68, .82] }, radler: { n: 'Radler', c: '#ffe66d', fill: .32, foam: .03, lvl: [.80, .90] } };
-const TYPE_KEYS = Object.keys(TYPES), FOAM_ZONE = [.08, .18], FOAM_SETTLE = .06;
-const HANDICAP = { 2: { glass: 1, pat: .25 }, 3: { glass: 1, pat: .20 }, 4: { glass: 1, pat: .15 } };   // Schlüssel = Größe der größeren Kneipe
-const STATION_ORDER = ['zapfer', 'kellner', 'spueler', 'zapfer', 'rausschmeisser', 'kellner', 'spueler', 'zapfer'];
-const ST = { zapfer: { n: 'Zapfer', i: '🍺' }, kellner: { n: 'Kellner', i: '🏃' }, spueler: { n: 'Spüler', i: '🧽' }, rausschmeisser: { n: 'Rausschmeißer', i: '💪' }, vertreter: { n: 'Brauereivertreter', i: '🎩' } };
-const EVENTS = { stammtisch: { n: 'Stammtisch', i: '🍻' }, fass: { n: 'Fass leer', i: '🛢️' }, blasmusik: { n: 'Blasmusik', i: '🎺' } };
-const FACES = ['🧔', '👩', '🧑‍🦳', '👨‍🦰', '👵', '🧑', '👴', '👱‍♀️'];
-const DEFAULT_NAMES = ['Zum Löschmeiler', 'Zur Durstigen Kehle'];
-const $ = id => document.getElementById(id);
-const rnd = (a, b) => a + Math.random() * (b - a);
-const pick = a => a[Math.floor(Math.random() * a.length)];
-const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const stList = a => a.map(s => ST[s].i + ' ' + ST[s].n).join(' & ');
-const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+const PREFIX='loeschmeile-',MAX=8,TICK=50,COUNT=3,LENS={3:180,5:300,7:420},SPERR=45;
+const W=600,H=1000,PR=22,SPEED=250,REACH=80,BASE_PAT=30,DRINK=6,TIP_BASE=5,TOP=150,BOT=890;
+const TYPES={pils:{n:'Pils',c:'#f2b53a',rate:.28,lo:.76,hi:.9},weizen:{n:'Weizen',c:'#e8d27a',rate:.36,lo:.62,hi:.78},radler:{n:'Radler',c:'#ffe66d',rate:.44,lo:.84,hi:.95}};
+const TK=Object.keys(TYPES);
+const SHELF={x:80,y:100},SINK={x:300,y:940};
+const TAPS=[{x:240,y:100,t:'pils'},{x:370,y:100,t:'weizen'},{x:500,y:100,t:'radler'}];
+const TABLES=[];for(let r=0;r<4;r++)for(let c=0;c<2;c++)TABLES.push({x:c?440:160,y:280+r*175});
+const TEAMC=['#ff8c42','#4cc9f0'],TEAMN=['Team Orange','Team Blau'],PAL=['#ff8c42','#4cc9f0','#b5e853','#c77dff','#ff5c8a','#06d6a0','#ffd166','#f1f1f1'];
+const HANDICAP={2:.8,3:.85,4:.9};              // Tempo-Faktor für das größere Team (Schlüssel = dessen Größe)
+const EVENTS={stammtisch:'🍻 Stammtisch!',fass:'🛢️ Fass leer!',blasmusik:'🎺 Blasmusik – Gäste werden ungeduldig!'};
+const FACES=['🧔','👩','🧑‍🦳','👨‍🦰','👵','🧑','👴','👱‍♀️'];
+const DEFAULT_NAME='Zum Löschmeiler';
+const $=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)],clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const stars=q=>q>=.8?'★★★':q>=.45?'★★':'★';
 
 // ================= Zustand =================
-let peer = null, isHost = false, hostConn = null, myName = '', myId = 'me';
-let me = { pid: -1, stations: [], vert: false, running: false };
-const conns = {}, players = {}; let order = [];
-let opts = { mode: 'one', vert: false, rotate: false, len: 3, names: DEFAULT_NAMES.slice() };
-let setup = { mode: 'one', pubs: [], vert: null };
-let pubRot = [0, 0], vertIdx = 0, ROUND = 180;
-let inGame = false, S = null, simTimer = null;
+let peer=null,isHost=false,hostConn=null,myName='',myId='me';
+let me={team:-1,running:false};
+const conns={},players={};let order=[];
+let opts={mode:'one',len:3,name:DEFAULT_NAME};
+let setup={mode:'one',name:DEFAULT_NAME,teams:[],handicap:null,members:{}};
+let ROUND=180,inGame=false,S=null,simTimer=null;
 
-function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); }
-function setStatus(t) { $('status').textContent = t; }
-function readName() { const n = $('name').value.trim().slice(0, 12); if (!n) { setStatus('Bitte zuerst einen Namen eingeben'); $('name').focus(); } return n; }
-async function keepAwake() { try { await navigator.wakeLock?.request('screen'); } catch (e) { } }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+function setStatus(t){$('status').textContent=t;}
+function readName(){const n=$('name').value.trim().slice(0,12);if(!n){setStatus('Bitte zuerst einen Namen eingeben');$('name').focus();}return n;}
+async function keepAwake(){try{await navigator.wakeLock?.request('screen');}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')keepAwake();});
 
 // ================= Host: Verbindung & Lobby =================
-function host() {
-  const n = readName(); if (!n) return; myName = n; isHost = true; myId = 'me';
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let code = ''; for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  setStatus('Verbinde mit Server…'); peer = new Peer(PREFIX + code);
-  peer.on('open', () => {
-    players.me = { name: myName, pid: -1, stations: [], vert: false, tip: 0 }; order = ['me'];
-    $('showCode').textContent = code; $('youName').textContent = 'Du: ' + myName + ' (Wirt)'; $('hostBtns').style.display = 'block';
-    $('pubA').value = opts.names[0]; $('pubB').value = opts.names[1];
-    $('waitNote').textContent = 'Sag den Code an. Wenn alle da sind: Schicht starten.'; $('againBtn').style.display = 'block'; $('endNote').textContent = '';
-    rebuild(); show('s-wait'); keepAwake();
-  });
-  peer.on('connection', c => {
-    c.on('open', () => { if (Object.keys(conns).length >= MAX - 1) { c.send({ type: 'full' }); setTimeout(() => c.close(), 500); return; } conns[c.peer] = c; });
-    c.on('data', d => handleFromClient(c.peer, d)); c.on('close', () => playerLeft(c.peer));
-  });
-  peer.on('error', e => setStatus('Fehler: ' + e.type));
+function host(){
+ const n=readName();if(!n)return;myName=n;isHost=true;myId='me';
+ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';for(let i=0;i<4;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+ setStatus('Verbinde mit Server…');peer=new Peer(PREFIX+code);
+ peer.on('open',()=>{
+  players.me={name:myName,team:0,tip:0};order=['me'];
+  $('showCode').textContent=code;$('youName').textContent='Du: '+myName+' (Wirt)';$('hostBtns').style.display='block';$('pubName').value=opts.name;
+  $('waitNote').textContent='Sag den Code an. Wenn alle da sind: Schicht starten.';$('againBtn').style.display='block';$('endNote').textContent='';
+  rebuild();show('s-wait');keepAwake();
+ });
+ peer.on('connection',c=>{
+  c.on('open',()=>{if(Object.keys(conns).length>=MAX-1){c.send({type:'full'});setTimeout(()=>c.close(),500);return;}conns[c.peer]=c;});
+  c.on('data',d=>handleFromClient(c.peer,d));c.on('close',()=>playerLeft(c.peer));
+ });
+ peer.on('error',e=>setStatus('Fehler: '+e.type));
 }
-function setOpt(k, v) { if (!isHost || inGame) return; opts[k] = v; rebuild(); }
-function setName(i, v) { if (!isHost) return; opts.names[i] = v.trim().slice(0, 18) || DEFAULT_NAMES[i]; if (!inGame) rebuild(); }
-function rebuild() { assignAll(); renderHostOpts(); sendSetupAll(); }
-function renderHostOpts() {
-  if (!isHost) return; const n = order.filter(id => players[id]).length;
-  $('modeOne').classList.toggle('sel', opts.mode === 'one'); $('modeDuel').classList.toggle('sel', opts.mode === 'duel');
-  $('duelNote').textContent = opts.mode === 'duel' ? (n < 4 ? '⚠️ Duell erst ab 4 Spielern – bis dahin spielt ihr eine Kneipe.' : (setup.pubs.some(p => p.handicap) ? 'Ungleiche Teams: die größere Kneipe bekommt ein Handicap.' : '')) : '';
-  $('pubB').style.display = opts.mode === 'duel' ? 'block' : 'none';
-  $('vertRow').style.display = (opts.mode === 'duel' && n >= 5 && n % 2 === 1) ? 'flex' : 'none';
-  [3, 5, 7].forEach(k => $('len' + k).classList.toggle('sel', opts.len === k));
-  $('startBtn').textContent = '▶ Schicht starten (' + opts.len + ' Min)'; $('startBtn').disabled = n < 1;
+function setOpt(k,v){if(!isHost||inGame)return;opts[k]=v;rebuild();}
+function setName(v){if(!isHost)return;opts.name=v.trim().slice(0,18)||DEFAULT_NAME;if(!inGame)rebuild();}
+function rebuild(){assign();renderHostOpts();sendSetupAll();}
+function assign(){
+ const ids=order.filter(id=>players[id]),n=ids.length,mode=(opts.mode==='duel'&&n>=4)?'duel':'one';
+ const teams=mode==='duel'?[{tid:0,members:[]},{tid:1,members:[]}]:[{tid:0,members:[]}];
+ ids.forEach((id,i)=>{const tid=mode==='duel'?i%2:0;players[id].team=tid;teams[tid].members.push({id,name:players[id].name,c:mode==='duel'?TEAMC[tid]:PAL[i%PAL.length]});});
+ let handicap=null;if(mode==='duel'){const d=teams[0].members.length-teams[1].members.length;if(Math.abs(d)===1){const big=d>0?0:1,f=HANDICAP[teams[big].members.length];if(f)handicap={tid:big,speed:f};}}
+ setup={mode,name:opts.name,teams,handicap,members:{}};for(const t of teams)for(const m of t.members)setup.members[m.id]=m;
 }
-function assignStations(pub) {
-  const m = pub.members.length, rot = pubRot[pub.pid] || 0;
-  pub.members.forEach((mem, i) => {
-    let st; if (m === 1) st = ['zapfer', 'kellner', 'spueler']; else if (m === 2) st = ((i + rot) % 2 === 0) ? ['zapfer', 'spueler'] : ['kellner', 'spueler']; else st = [STATION_ORDER[(i + rot) % m]];
-    mem.stations = st; if (players[mem.id]) players[mem.id].stations = st;
-  });
-  pub.size = m;
+function renderHostOpts(){
+ const n=order.filter(id=>players[id]).length;
+ $('modeOne').classList.toggle('sel',opts.mode==='one');$('modeDuel').classList.toggle('sel',opts.mode==='duel');
+ $('duelNote').textContent=opts.mode==='duel'?(n<4?'⚠️ Duell erst ab 4 Spielern – bis dahin spielt ihr eine Kneipe.':(setup.handicap?'Ungleiche Teams: das größere Team läuft langsamer ('+Math.round((1-setup.handicap.speed)*100)+' %).':'')):'';
+ [3,5,7].forEach(k=>$('len'+k).classList.toggle('sel',opts.len===k));
+ $('startBtn').textContent='▶ Schicht starten ('+opts.len+' Min)';$('startBtn').disabled=n<1;
 }
-function assignAll() {
-  const ids = order.filter(id => players[id]); const n = ids.length;
-  const mode = (opts.mode === 'duel' && n >= 4) ? 'duel' : 'one';
-  let pool = ids.slice(), vertId = null;
-  if (mode === 'duel' && opts.vert && n % 2 === 1) vertId = pool.splice(vertIdx % pool.length, 1)[0];
-  const groups = mode === 'duel' ? [[], []] : [[]];
-  pool.forEach((id, i) => groups[mode === 'duel' ? i % 2 : 0].push(id));
-  const pubs = groups.map((g, pid) => {
-    g.forEach(id => { players[id].pid = pid; players[id].vert = false; });
-    const pub = { pid, name: opts.names[pid] || DEFAULT_NAMES[pid], members: g.map(id => ({ id, name: players[id].name, stations: [] })), size: g.length, handicap: null };
-    assignStations(pub); return pub;
-  });
-  if (pubs.length === 2) { const d = pubs[0].size - pubs[1].size; if (Math.abs(d) === 1) { const big = d > 0 ? pubs[0] : pubs[1]; const h = HANDICAP[big.size]; if (h) big.handicap = { glass: h.glass, pat: h.pat }; } }
-  if (vertId) { const p = players[vertId]; p.pid = -1; p.vert = true; p.stations = ['vertreter']; }
-  setup = { mode, pubs, vert: vertId ? { id: vertId, name: players[vertId].name } : null };
+function setupMsgFor(id){return{type:'setup',mode:setup.mode,name:setup.name,teams:setup.teams,handicap:setup.handicap,len:opts.len,you:{id,team:players[id].team},running:inGame};}
+function sendSetupTo(id){if(id==='me')applySetup(setupMsgFor('me'));else if(conns[id]&&conns[id].open)conns[id].send(setupMsgFor(id));}
+function sendSetupAll(){for(const id in players)sendSetupTo(id);}
+function broadcast(msg){for(const id in conns){const c=conns[id];if(c.open)c.send(msg);}}
+function handleFromClient(id,msg){
+ if(!msg||typeof msg!=='object')return;
+ if(msg.type==='join'){if(players[id])return;players[id]={name:String(msg.name||'Spieler').slice(0,12),team:0,tip:0};order.push(id);if(inGame)sendSetupTo(id);else rebuild();return;}
+ if(!S||S.state!=='play'||!S.P[id])return;const P=S.P[id];
+ if(msg.type==='in'){P.mx=clamp(+msg.x||0,-1,1);P.my=clamp(+msg.y||0,-1,1);}
+ if(msg.type==='act'){if(msg.d)actDown(id);else actUp(id);}
 }
-function setupMsgFor(id) { const p = players[id]; return { type: 'setup', mode: setup.mode, opts: { rotate: opts.rotate, len: opts.len, vert: opts.vert }, pubs: setup.pubs, vert: setup.vert, you: { id, pid: p.pid, stations: p.stations, vert: p.vert }, running: inGame }; }
-function sendSetupTo(id) { if (id === 'me') applySetup(setupMsgFor('me')); else if (conns[id] && conns[id].open) conns[id].send(setupMsgFor(id)); }
-function sendSetupAll() { for (const id in players) sendSetupTo(id); }
-function broadcast(msg) { for (const id in conns) { const c = conns[id]; if (c.open) c.send(msg); } }
-
-function handleFromClient(id, msg) {
-  if (!msg || typeof msg !== 'object') return;
-  if (msg.type === 'join') { if (players[id]) return; players[id] = { name: String(msg.name || 'Spieler').slice(0, 12), pid: -1, stations: [], vert: false, tip: 0 }; order.push(id); if (inGame) sendSetupTo(id); else rebuild(); return; }
-  const p = players[id]; if (!p || !S || S.state !== 'play') return;
-  if (msg.type === 'vert') { if (!p.vert) return; const k = msg.ev, P = S.pubs.find(x => x.pid === msg.pid); if (!EVENTS[k] || !P || (S.vcd[k] || 0) > S.t) return; triggerEvent(k, P, true); S.vcd[k] = S.t + VERT_CD; return; }
-  const P = S.pubs.find(x => x.pid === p.pid); if (!P) return; const can = st => p.stations.includes(st);
-  switch (msg.type) {
-    case 'beer': if (!can('zapfer') || !TYPES[msg.t]) return; if (P.kegEmpty) { S.ev.push({ e: 'noglass', pid: P.pid, t: 'Fass ist leer – Bier weg!' }); return; } if (P.clean <= 0) { S.ev.push({ e: 'noglass', pid: P.pid }); return; } if (P.beers.length >= COUNTER_MAX) return;
-      P.clean--; P.beers.push({ id: S.nextId++, type: msg.t, q: clamp(+msg.q || 0, 0, 1), by: id }); break;
-    case 'spill': if (!can('zapfer')) return; if (P.clean > 0) { P.clean--; P.dirty++; } S.ev.push({ e: 'spill', pid: P.pid }); if (setup.vert) S.chaos += 3; break;
-    case 'serve': {
-      if (!can('kellner')) return; const bi = P.beers.findIndex(b => b.id === msg.b), g = P.guests.find(x => x.id === msg.g && x.state === 'wait'); if (bi < 0 || !g) return; const b = P.beers[bi];
-      if (b.type !== g.type) { g.pat -= g.max * .25; S.ev.push({ e: 'wrong', pid: P.pid }); return; }
-      P.beers.splice(bi, 1); const mult = (ROUND - (S.t - S.playStart)) <= SPERR ? 2 : 1;
-      const tip = Math.max(1, Math.round(TIP_BASE * (0.4 + 0.6 * b.q) * (0.5 + 0.5 * g.pat / g.max) * mult));
-      const zp = players[b.by]; if (zp && b.by !== id) { p.tip += Math.ceil(tip / 2); zp.tip += Math.floor(tip / 2); } else p.tip += tip;
-      P.tips += tip; P.served++; P.rep = Math.min(100, P.rep + 2 + 3 * b.q); g.state = 'drink'; g.until = S.t + DRINK_TIME;
-      S.ev.push({ e: 'served', pid: P.pid, k: id, z: b.by, tip, n: p.name }); break;
-    }
-    case 'drop': { if (!can('kellner')) return; const bi = P.beers.findIndex(b => b.id === msg.b); if (bi < 0) return; P.beers.splice(bi, 1); P.dirty++; S.ev.push({ e: 'spill', pid: P.pid }); if (setup.vert) S.chaos += 3; break; }
-    case 'clean': if (!can('spueler') || P.dirty <= 0) return; P.dirty--; P.clean++; p.tip += TIP_WASH; break;
-    case 'keg': if (!can('zapfer') || !P.kegEmpty) return; P.kegEmpty = false; p.tip += TIP_KEG; S.ev.push({ e: 'kegok', pid: P.pid }); break;
-    case 'bounce': { if (!can('rausschmeisser')) return; const i = P.trouble.findIndex(x => x.id === msg.id); if (i < 0) return; P.trouble.splice(i, 1); p.tip += TIP_BOUNCE; P.rep = Math.min(100, P.rep + 1); S.ev.push({ e: 'bounced', pid: P.pid }); break; }
-  }
-}
-function playerLeft(id) {
-  delete conns[id]; const p = players[id]; delete players[id]; order = order.filter(o => o !== id); if (!p) return;
-  if (!inGame) { rebuild(); return; }
-  if (p.vert) { setup.vert = null; if (S) S.nextEvent = S.t + rnd(20, 35); }
-  for (const pub of setup.pubs) { const i = pub.members.findIndex(m => m.id === id); if (i >= 0) { pub.members.splice(i, 1); assignStations(pub); const P = S && S.pubs.find(x => x.pid === pub.pid); if (P) P.size = Math.max(1, pub.members.length); } }
-  syncBouncers(); sendSetupAll();
+function playerLeft(id){
+ delete conns[id];const p=players[id];delete players[id];order=order.filter(o=>o!==id);if(!p)return;
+ if(!inGame){rebuild();return;}
+ const P=S&&S.P[id];if(P){if(P.carry)S.floor.push({x:P.x,y:P.y,it:P.carry});delete S.P[id];}
+ for(const t of setup.teams)t.members=t.members.filter(m=>m.id!==id);delete setup.members[id];sendSetupAll();
 }
 
 // ================= Mitspieler: Verbindung =================
-function join() {
-  const n = readName(); if (!n) return; myName = n;
-  const code = $('code').value.trim().toUpperCase(); if (code.length !== 4) { setStatus('Bitte 4-stelligen Raumcode eingeben'); return; }
-  setStatus('Verbinde mit Server…'); peer = new Peer();
-  peer.on('open', () => {
-    myId = peer.id; setStatus('Suche Kneipe ' + code + '…');
-    hostConn = peer.connect(PREFIX + code, { reliable: true });
-    hostConn.on('open', () => { hostConn.send({ type: 'join', name: myName }); $('showCode').textContent = code; $('youName').textContent = 'Du: ' + myName; show('s-wait'); keepAwake(); });
-    hostConn.on('data', d => handleFromHost(d));
-    hostConn.on('close', () => { alert('Verbindung zum Wirt verloren'); location.reload(); });
-  });
-  peer.on('error', e => setStatus(e.type === 'peer-unavailable' ? 'Kneipe nicht gefunden' : 'Fehler: ' + e.type));
+function join(){
+ const n=readName();if(!n)return;myName=n;
+ const code=$('code').value.trim().toUpperCase();if(code.length!==4){setStatus('Bitte 4-stelligen Raumcode eingeben');return;}
+ setStatus('Verbinde mit Server…');peer=new Peer();
+ peer.on('open',()=>{
+  myId=peer.id;setStatus('Suche Kneipe '+code+'…');hostConn=peer.connect(PREFIX+code,{reliable:true});
+  hostConn.on('open',()=>{hostConn.send({type:'join',name:myName});$('showCode').textContent=code;$('youName').textContent='Du: '+myName;show('s-wait');keepAwake();});
+  hostConn.on('data',d=>handleFromHost(d));hostConn.on('close',()=>{alert('Verbindung zum Wirt verloren');location.reload();});
+ });
+ peer.on('error',e=>setStatus(e.type==='peer-unavailable'?'Kneipe nicht gefunden':'Fehler: '+e.type));
 }
-function handleFromHost(msg) {
-  if (!msg || typeof msg !== 'object') return;
-  switch (msg.type) {
-    case 'full': alert('Die Kneipe ist voll (8 Spieler)'); location.reload(); break;
-    case 'setup': applySetup(msg); break;
-    case 'start': onStart(msg); break;
-    case 'snap': if (inGame) applySnap(msg); break;
-    case 'end': onEnd(msg); break;
-  }
+function handleFromHost(msg){
+ if(!msg||typeof msg!=='object')return;
+ switch(msg.type){case 'full':alert('Die Kneipe ist voll (8 Spieler)');location.reload();break;case 'setup':applySetup(msg);break;case 'start':onStart(msg);break;case 'snap':if(inGame)applySnap(msg);break;case 'end':onEnd(msg);break;}
 }
-function sendAction(msg) { if (isHost) handleFromClient('me', msg); else if (hostConn && hostConn.open) hostConn.send(msg); }
+function sendAction(msg){if(isHost)handleFromClient('me',msg);else if(hostConn&&hostConn.open)hostConn.send(msg);}
 
-// ================= Gemeinsam: Lobby-Anzeige =================
-function applySetup(msg) {
-  const prev = me.stations.join();
-  setup = { mode: msg.mode, pubs: msg.pubs, vert: msg.vert }; opts.rotate = msg.opts.rotate; opts.len = msg.opts.len;
-  me = { pid: msg.you.pid, stations: msg.you.stations || [], vert: !!msg.you.vert, running: !!msg.running };
-  if (!isHost && msg.you.id) myId = msg.you.id;
-  renderRoster();
-  if (inGame) { if (me.stations.join() !== prev) { curStation = me.stations[0] || null; buildStation(); showToast('🔄 Stationswechsel!'); } renderTabs(); updateHud(); }
-  else show('s-wait');
+// ================= Gemeinsam: Lobby =================
+function applySetup(msg){
+ setup={mode:msg.mode,name:msg.name,teams:msg.teams,handicap:msg.handicap,members:{}};for(const t of msg.teams)for(const m of t.members)setup.members[m.id]=m;
+ opts.len=msg.len;me={team:msg.you.team,running:!!msg.running};if(!isHost&&msg.you.id)myId=msg.you.id;
+ renderRoster();if(inGame)updateHud();else show('s-wait');
 }
-function renderRoster() {
-  let html = `<p class="small">${setup.mode === 'duel' ? '⚔️ Duell' : '🍺 Eine Kneipe'} · ${opts.len} Min${opts.rotate ? ' · 🔄 Stationswechsel' : ''}</p>`;
-  for (const p of setup.pubs) {
-    html += `<div class="pub"><h3>🍻 ${esc(p.name)} <span class="small">(${p.members.length})</span></h3>` +
-      (p.handicap ? `<div class="small" style="text-align:left;color:#ffb3b3">Handicap: −${p.handicap.glass} Glas, Gäste −${Math.round(p.handicap.pat * 100)} % Geduld</div>` : '') +
-      (p.members.map(m => `<div class="member">${esc(m.name)}<span>${stList(m.stations)}</span></div>`).join('') || '<div class="small">leer</div>') + '</div>';
-  }
-  if (setup.vert) html += `<div class="pub" style="border-color:#c77dff"><h3 style="color:#c77dff">🎩 Brauereivertreter</h3><div class="member">${esc(setup.vert.name)}<span>stiftet Chaos</span></div></div>`;
-  $('roster').innerHTML = html;
-  const P = setup.pubs.find(p => p.pid === me.pid);
-  $('myRole').textContent = me.vert ? '🎩 Du bist Brauereivertreter – stifte Chaos in beiden Kneipen!' : P ? `Du arbeitest in „${P.name}“ – ${stList(me.stations)}${me.stations.length > 1 ? ' (umschaltbar)' : ''}` : (me.running ? '⏳ Schicht läuft – du bist ab der nächsten dabei' : '…');
+function renderRoster(){
+ let html=`<p class="small">${setup.mode==='duel'?'⚔️ Duell':'🍺 Eine Kneipe'} · „${esc(setup.name)}“ · ${opts.len} Min</p>`;
+ for(const t of setup.teams){const h=setup.handicap&&setup.handicap.tid===t.tid;
+  html+=`<div class="pub"${setup.mode==='duel'?` style="border-color:${TEAMC[t.tid]}"`:''}><h3${setup.mode==='duel'?` style="color:${TEAMC[t.tid]}"`:''}>${setup.mode==='duel'?TEAMN[t.tid]:'🍻 '+esc(setup.name)} <span class="small">(${t.members.length})</span></h3>`+
+  (h?`<div class="small" style="text-align:left;color:#ffb3b3">Handicap: läuft ${Math.round((1-setup.handicap.speed)*100)} % langsamer</div>`:'')+
+  (t.members.map(m=>`<div class="member"><span style="color:${m.c}">●</span>&nbsp;${esc(m.name)}<span></span></div>`).join('')||'<div class="small">leer</div>')+'</div>';}
+ $('roster').innerHTML=html;
+ const inTeam=!!setup.members[myId];
+ $('myRole').textContent=inTeam?(setup.mode==='duel'?`Du spielst für ${TEAMN[me.team]}`:'Du arbeitest in „'+setup.name+'“'):(me.running?'⏳ Schicht läuft – du bist ab der nächsten dabei':'…');
 }
 
 // ================= Host: Simulation =================
-function startGame() {
-  if (!isHost || inGame || !setup.pubs.some(p => p.members.length)) return;
-  inGame = true; ROUND = LENS[opts.len] || 180;
-  for (const id in players) players[id].tip = 0;
-  S = { t: 0, state: 'count', playStart: 0, nextId: 1, ev: [], chaos: 0, vcd: {}, nextEvent: 0, lastRot: 0, sperrDone: false,
-    pubs: setup.pubs.map(p => { const gt = 4 + p.members.length - (p.handicap ? p.handicap.glass : 0);
-      return { pid: p.pid, name: p.name, size: Math.max(1, p.members.length), glassTotal: gt, clean: gt, dirty: 0, beers: [], guests: [], trouble: [], rep: 50, served: 0, lost: 0, tips: 0, kegEmpty: false, kegAuto: 0, blasUntil: 0, nextGuest: 0, nextTrouble: 0, patMult: 1 - (p.handicap ? p.handicap.pat : 0), hasBouncer: false }; }) };
-  syncBouncers();
-  const m = { type: 'start', round: ROUND }; broadcast(m); onStart(m);
-  clearInterval(simTimer); simTimer = setInterval(hostTick, TICK);
+function startGame(){
+ if(!isHost||inGame||!order.length)return;inGame=true;ROUND=LENS[opts.len]||180;
+ const ids=order.filter(id=>players[id]);
+ S={t:0,state:'count',playStart:0,ev:[],rep:60,shelf:5+ids.length,taps:TAPS.map(()=>({empty:false,auto:0})),tables:TABLES.map(()=>({g:null,dirty:false})),floor:[],puddles:[],P:{},tt:[0,0],served:0,lost:0,nextGuest:0,nextEvent:0,blas:0,sperr:false};
+ ids.forEach((id,i)=>{players[id].tip=0;S.P[id]={id,x:120+(i%4)*120,y:540+Math.floor(i/4)*90,vx:0,vy:0,mx:0,my:0,carry:null,hold:false,prog:0,act:null,slip:0,team:players[id].team};});
+ const m={type:'start',round:ROUND};broadcast(m);onStart(m);clearInterval(simTimer);simTimer=setInterval(hostTick,TICK);
 }
-function syncBouncers() { if (!S) return; for (const P of S.pubs) { const sp = setup.pubs.find(x => x.pid === P.pid); P.hasBouncer = !!sp && sp.members.some(m => m.stations.includes('rausschmeisser')); if (P.hasBouncer && !P.nextTrouble) P.nextTrouble = S.t + rnd(10, 20); } }
-function hostTick() { if (!S || S.state === 'end') return; simTick(TICK / 1000); if (S.state === 'end') return; const snap = makeSnap(); broadcast(snap); applySnap(snap); }
-function spawnGuest(P, type) {
-  const used = new Set(P.guests.map(g => g.seat)); let seat = -1; for (let s = 0; s < SEATS; s++) if (!used.has(s)) { seat = s; break; } if (seat < 0) return;
-  const max = BASE_PATIENCE * P.patMult * rnd(.85, 1.15);
-  P.guests.push({ id: S.nextId++, seat, face: pick(FACES), type: type || pick(TYPE_KEYS), pat: max, max, state: 'wait', until: 0 });
+function hostTick(){if(!S||S.state==='end')return;simTick(TICK/1000);if(S.state==='end')return;const snap=makeSnap();broadcast(snap);applySnap(snap);}
+function nearest(pos,floor){
+ const cand=[{k:'shelf',o:SHELF,r:REACH+25},{k:'sink',o:SINK,r:REACH+30}];
+ TAPS.forEach((t,i)=>cand.push({k:'tap',i,o:t,r:REACH+10}));TABLES.forEach((t,i)=>cand.push({k:'table',i,o:t,r:REACH+15}));(floor||[]).forEach((f,i)=>cand.push({k:'floor',i,o:f,r:REACH-25}));
+ let best=null,bd=1;for(const c of cand){const d=dist(pos,c.o);if(d<c.r&&d/c.r<bd){bd=d/c.r;best=c;}}return best;
 }
-function triggerEvent(k, P, byVert) {
-  if (k === 'stammtisch') { const type = pick(TYPE_KEYS); let n = 0; while (n < 4 && P.guests.length < SEATS) { spawnGuest(P, type); n++; } }
-  else if (k === 'fass') { P.kegEmpty = true; P.kegAuto = S.t + 30; }
-  else if (k === 'blasmusik') { P.blasUntil = S.t + 20; }
-  S.ev.push({ e: 'event', k, pid: P.pid, v: byVert ? 1 : 0 });
+function actDown(id){
+ const P=S.P[id];if(P.hold)return;const n=nearest(P,S.floor);
+ if(!n){if(P.carry){S.floor.push({x:P.x,y:P.y+PR+8,it:P.carry});P.carry=null;}return;}
+ if(n.k==='shelf'){if(!P.carry){if(S.shelf>0){S.shelf--;P.carry={k:'clean'};}else S.ev.push({e:'msg',id,t:'🥛 Regal leer – spülen!'});}else if(P.carry.k==='clean'){S.shelf++;P.carry=null;}return;}
+ if(n.k==='floor'){if(!P.carry)P.carry=S.floor.splice(n.i,1)[0].it;else{S.floor.push({x:P.x,y:P.y+PR+8,it:P.carry});P.carry=null;}return;}
+ if(n.k==='tap'){const T=S.taps[n.i];if(T.empty){P.hold=true;P.act={k:'keg',i:n.i};P.prog=0;return;}
+  if(P.carry&&P.carry.k==='clean'){P.hold=true;P.act={k:'pour',i:n.i};P.prog=0;}else S.ev.push({e:'msg',id,t:P.carry?'❌ Du brauchst ein leeres, sauberes Glas':'🥛 Erst ein Glas vom Regal holen'});return;}
+ if(n.k==='sink'){if(P.carry&&P.carry.k==='dirty'){P.hold=true;P.act={k:'wash'};P.prog=0;}else S.ev.push({e:'msg',id,t:'🧽 Hier werden dreckige Gläser gespült'});return;}
+ if(n.k==='table'){const T=S.tables[n.i];
+  if(T.g&&T.g.state==='wait'&&P.carry&&P.carry.k==='beer'){if(P.carry.t!==T.g.type){T.g.pat-=T.g.max*.25;S.ev.push({e:'msg',id,t:'❌ Falsches Bier – der Gast will '+TYPES[T.g.type].n});return;}serve(id,P,T);return;}
+  if(T.dirty&&!P.carry){T.dirty=false;P.carry={k:'dirty'};return;}
+  if(T.g&&T.g.state==='wait'&&!P.carry)S.ev.push({e:'msg',id,t:'🗣️ „Ein '+TYPES[T.g.type].n+' bitte!“'});}
 }
-function rotateStations() { for (const pub of setup.pubs) { pubRot[pub.pid] = (pubRot[pub.pid] || 0) + 1; assignStations(pub); } syncBouncers(); sendSetupAll(); }
-function simTick(dt) {
-  S.t += dt;
-  if (S.state === 'count') { if (S.t >= COUNT) { S.state = 'play'; S.playStart = S.t; S.nextEvent = S.t + rnd(30, 45); S.lastRot = S.t; for (const P of S.pubs) P.nextGuest = S.t + 1.5; } return; }
-  const left = ROUND - (S.t - S.playStart); if (left <= 0) { endGame(); return; }
-  if (!S.sperrDone && left <= SPERR) { S.sperrDone = true; S.ev.push({ e: 'sperr' }); }
-  if (opts.rotate && S.t - S.lastRot >= ROTATE_EVERY && left > 15) { S.lastRot = S.t; rotateStations(); }
-  if (!setup.vert && S.t >= S.nextEvent) { const k = pick(Object.keys(EVENTS)); for (const P of S.pubs) triggerEvent(k, P, false); S.nextEvent = S.t + rnd(35, 50); }
-  for (const P of S.pubs) {
-    const blas = S.t < P.blasUntil;
-    if (S.t >= P.nextGuest) { if (P.guests.length < SEATS) spawnGuest(P); P.nextGuest = S.t + clamp(20 / P.size, 5, 16) * (blas ? .5 : 1) * rnd(.8, 1.2); }
-    for (let i = P.guests.length - 1; i >= 0; i--) {
-      const g = P.guests[i];
-      if (g.state === 'drink') { if (S.t >= g.until) { P.guests.splice(i, 1); P.dirty++; } continue; }
-      g.pat -= dt * (blas ? 2 : 1);
-      if (g.pat <= 0) { P.guests.splice(i, 1); P.lost++; P.rep = Math.max(0, P.rep - 6); S.ev.push({ e: 'lost', pid: P.pid }); if (setup.vert) S.chaos += 5; }
-    }
-    if (P.kegEmpty && S.t >= P.kegAuto) P.kegEmpty = false;
-    if (P.hasBouncer) {
-      if (S.t >= P.nextTrouble) { P.trouble.push({ id: S.nextId++, until: S.t + 7 }); P.nextTrouble = S.t + rnd(15, 30); S.ev.push({ e: 'trouble', pid: P.pid }); }
-      for (let i = P.trouble.length - 1; i >= 0; i--) if (S.t >= P.trouble[i].until) {
-        P.trouble.splice(i, 1); if (P.beers.length) { P.beers.pop(); P.dirty++; } for (const g of P.guests) if (g.state === 'wait') g.pat -= g.max * .15;
-        P.rep = Math.max(0, P.rep - 3); S.ev.push({ e: 'riot', pid: P.pid });
-      }
-    }
+function serve(id,P,T){
+ const g=T.g,b=P.carry,mult=(ROUND-(S.t-S.playStart))<=SPERR?2:1;
+ const tip=Math.max(1,Math.round(TIP_BASE*(0.4+0.6*b.q)*(0.5+0.5*clamp(g.pat/g.max,0,1))*mult));
+ players[id].tip+=tip;S.tt[P.team]+=tip;S.served++;S.rep=Math.min(100,S.rep+2+3*b.q);g.state='drink';g.until=S.t+DRINK;P.carry=null;
+ S.ev.push({e:'served',id,tip,x:T.x,y:T.y-60});
+}
+function actUp(id){
+ const P=S.P[id];if(!P.hold)return;
+ if(P.act.k==='pour'&&P.prog>=.25){const tt=TAPS[P.act.i].t,T=TYPES[tt],mid=(T.lo+T.hi)/2,hw=(T.hi-T.lo)/2;const q=+clamp(1-Math.max(0,Math.abs(P.prog-mid)-hw)/.18,0,1).toFixed(2);P.carry={k:'beer',t:tt,q};S.ev.push({e:'msg',id,t:stars(q)+' '+T.n+' gezapft'});}
+ P.hold=false;P.act=null;P.prog=0;
+}
+function spawnGuest(i,type){const max=BASE_PAT*rnd(.85,1.15);S.tables[i].g={type:type||pick(TK),pat:max,max,state:'wait',until:0,face:pick(FACES)};}
+function triggerEvent(k){
+ if(k==='stammtisch'){const type=pick(TK);let n=0;for(let i=0;i<TABLES.length&&n<4;i++)if(!S.tables[i].g&&!S.tables[i].dirty){spawnGuest(i,type);n++;}}
+ else if(k==='fass'){const c=S.taps.map((t,i)=>t.empty?-1:i).filter(i=>i>=0);if(!c.length)return;const i=pick(c);S.taps[i].empty=true;S.taps[i].auto=S.t+30;for(const P of Object.values(S.P))if(P.hold&&P.act.k==='pour'&&P.act.i===i){P.hold=false;P.act=null;P.prog=0;}}
+ else if(k==='blasmusik')S.blas=S.t+20;
+ S.ev.push({e:'event',k});
+}
+function simTick(dt){
+ S.t+=dt;
+ if(S.state==='count'){if(S.t>=COUNT){S.state='play';S.playStart=S.t;S.nextGuest=S.t+1;S.nextEvent=S.t+rnd(30,45);}return;}
+ const left=ROUND-(S.t-S.playStart);if(left<=0){endGame();return;}
+ if(!S.sperr&&left<=SPERR){S.sperr=true;S.ev.push({e:'sperr'});}
+ if(S.t>=S.nextEvent){triggerEvent(pick(Object.keys(EVENTS)));S.nextEvent=S.t+rnd(35,50);}
+ const n=Object.keys(S.P).length||1,blas=S.t<S.blas,list=Object.values(S.P);
+ for(const P of list){
+  if(P.hold){const nn=nearest(P,S.floor),ok=nn&&(P.act.k==='wash'?nn.k==='sink':(nn.k==='tap'&&nn.i===P.act.i));
+   if(!ok){P.hold=false;P.act=null;P.prog=0;}
+   else if(P.act.k==='pour'){P.prog+=TYPES[TAPS[P.act.i].t].rate*dt;if(P.prog>1.03){S.puddles.push({x:P.x,y:P.y+PR+10,until:S.t+20});P.carry={k:'dirty'};P.hold=false;P.act=null;P.prog=0;S.ev.push({e:'spill',id:P.id,x:P.x,y:P.y});}}
+   else if(P.act.k==='wash'){P.prog+=dt/1.6;if(P.prog>=1){P.carry={k:'clean'};players[P.id].tip+=1;S.tt[P.team]+=1;P.hold=false;P.act=null;P.prog=0;S.ev.push({e:'msg',id:P.id,t:'✨ Sauber! +1 €'});}}
+   else if(P.act.k==='keg'){P.prog+=dt/3;if(P.prog>=1){S.taps[P.act.i].empty=false;players[P.id].tip+=3;S.tt[P.team]+=3;P.hold=false;P.act=null;P.prog=0;S.ev.push({e:'msg',id:P.id,t:'🛢️ Fass gewechselt! +3 €'});}}
   }
+  const spf=(setup.handicap&&setup.handicap.tid===P.team)?setup.handicap.speed:1,sp=P.hold?0:SPEED*spf,k=Math.min(1,dt*(P.slip>0?1.5:14));
+  P.vx+=(P.mx*sp-P.vx)*k;P.vy+=(P.my*sp-P.vy)*k;P.x+=P.vx*dt;P.y+=P.vy*dt;P.slip=Math.max(0,P.slip-dt);
+  P.x=clamp(P.x,PR,W-PR);P.y=clamp(P.y,TOP+PR,BOT-PR);
+  for(const T of TABLES){const d=dist(P,T),R=48+PR;if(d<R&&d>0){P.x=T.x+(P.x-T.x)/d*R;P.y=T.y+(P.y-T.y)/d*R;}}
+  if(P.slip<=0&&Math.hypot(P.vx,P.vy)>60)for(const q of S.puddles)if(dist(P,q)<30){P.slip=.7;break;}
+ }
+ for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){const A=list[i],B=list[j],d=dist(A,B);if(d<PR*2&&d>0){const o=(PR*2-d)/2,nx=(B.x-A.x)/d,ny=(B.y-A.y)/d;A.x-=nx*o;A.y-=ny*o;B.x+=nx*o;B.y+=ny*o;}}
+ if(S.t>=S.nextGuest){const free=S.tables.map((t,i)=>(!t.g&&!t.dirty)?i:-1).filter(i=>i>=0);if(free.length)spawnGuest(pick(free));S.nextGuest=S.t+clamp(16/n,3.5,10)*rnd(.8,1.2);}
+ S.tables.forEach((T,i)=>{const g=T.g;if(!g)return;
+  if(g.state==='drink'){if(S.t>=g.until){T.g=null;T.dirty=true;}return;}
+  g.pat-=dt*(blas?2:1);if(g.pat<=0){T.g=null;S.lost++;S.rep=Math.max(0,S.rep-6);S.ev.push({e:'lost',x:TABLES[i].x,y:TABLES[i].y-60});}});
+ S.taps.forEach(t=>{if(t.empty&&S.t>=t.auto)t.empty=false;});
+ S.puddles=S.puddles.filter(q=>S.t<q.until);
 }
-function makeSnap() {
-  const left = S.state === 'count' ? COUNT - S.t : ROUND - (S.t - S.playStart);
-  const snap = { type: 'snap', st: S.state, left, sperr: S.state === 'play' && left <= SPERR ? 1 : 0, chaos: S.chaos,
-    vcd: Object.fromEntries(Object.keys(EVENTS).map(k => [k, Math.max(0, (S.vcd[k] || 0) - S.t)])),
-    pubs: S.pubs.map(P => ({ pid: P.pid, clean: P.clean, dirty: P.dirty, tot: P.glassTotal, rep: Math.round(P.rep), served: P.served, lost: P.lost, tips: P.tips, size: P.size, keg: P.kegEmpty ? 1 : 0, blas: S.t < P.blasUntil ? 1 : 0,
-      beers: P.beers.map(b => [b.id, b.type, +b.q.toFixed(2)]),
-      guests: P.guests.map(g => [g.id, g.seat, g.face, g.type, +clamp(g.pat / g.max, 0, 1).toFixed(2), g.state === 'drink' ? 1 : 0]),
-      trouble: P.trouble.map(x => [x.id, +(x.until - S.t).toFixed(1)]) })),
-    tips: Object.keys(players).map(id => [id, players[id].tip || 0]), ev: S.ev };
-  S.ev = []; return snap;
+function makeSnap(){
+ const left=S.state==='count'?COUNT-S.t:ROUND-(S.t-S.playStart);
+ const snap={type:'snap',st:S.state,left,sperr:S.state==='play'&&left<=SPERR?1:0,rep:Math.round(S.rep),shelf:S.shelf,tt:S.tt,served:S.served,lost:S.lost,blas:S.t<S.blas?1:0,
+  P:Object.values(S.P).map(p=>[p.id,Math.round(p.x),Math.round(p.y),p.carry?p.carry.k:'',p.carry?(p.carry.t||''):'',p.carry&&p.carry.k==='beer'?p.carry.q:0,p.hold?+p.prog.toFixed(2):-1,p.act?p.act.k:'',p.act&&p.act.i!==undefined?p.act.i:-1,players[p.id]?players[p.id].tip:0,p.team]),
+  tb:S.tables.map(t=>t.g?[t.g.type,+clamp(t.g.pat/t.g.max,0,1).toFixed(2),t.g.state==='drink'?1:0,t.g.face]:(t.dirty?1:0)),
+  taps:S.taps.map(t=>t.empty?1:0),fl:S.floor.map(f=>[Math.round(f.x),Math.round(f.y),f.it.k,f.it.t||'']),pd:S.puddles.map(q=>[Math.round(q.x),Math.round(q.y)]),ev:S.ev};
+ S.ev=[];return snap;
 }
-function endGame() {
-  S.state = 'end'; clearInterval(simTimer); inGame = false;
-  const pubs = S.pubs.map(P => ({ pid: P.pid, name: P.name, served: P.served, lost: P.lost, tips: P.tips, size: P.size, per: +(P.tips / Math.max(1, P.size)).toFixed(1), rep: Math.round(P.rep) }));
-  let winner = null; if (pubs.length === 2) winner = pubs[0].per === pubs[1].per ? (pubs[0].rep >= pubs[1].rep ? 0 : 1) : (pubs[0].per > pubs[1].per ? 0 : 1);
-  const plist = Object.keys(players).map(id => { const p = players[id]; const pub = setup.pubs.find(x => x.pid === p.pid); return { name: p.name, tip: p.tip, pub: pub ? pub.name : '', vert: p.vert, chaos: p.vert ? S.chaos : 0 }; }).sort((a, b) => b.tip - a.tip);
-  let hs = []; try { hs = JSON.parse(localStorage.getItem('loeschmeile-hs') || '[]'); } catch (e) { }
-  const d = new Date().toLocaleDateString('de-DE');
-  for (const r of plist) if (!r.vert) hs.push({ n: r.name, s: r.tip, p: r.pub, d });
-  hs.sort((a, b) => b.s - a.s); hs = hs.slice(0, 10); try { localStorage.setItem('loeschmeile-hs', JSON.stringify(hs)); } catch (e) { }
-  const msg = { type: 'end', pubs, winner, players: plist, hs }; broadcast(msg); onEnd(msg);
+function endGame(){
+ S.state='end';clearInterval(simTimer);inGame=false;
+ const teams=setup.teams.map(t=>({tid:t.tid,name:setup.mode==='duel'?TEAMN[t.tid]:setup.name,size:Math.max(1,t.members.length),tips:S.tt[t.tid],per:+(S.tt[t.tid]/Math.max(1,t.members.length)).toFixed(1)}));
+ let winner=null;if(teams.length===2)winner=teams[0].per===teams[1].per?null:(teams[0].per>teams[1].per?0:1);
+ const plist=Object.keys(players).map(id=>({name:players[id].name,tip:players[id].tip||0,team:players[id].team})).sort((a,b)=>b.tip-a.tip);
+ let hs=[];try{hs=JSON.parse(localStorage.getItem('loeschmeile-hs')||'[]');}catch(e){}
+ const d=new Date().toLocaleDateString('de-DE');for(const r of plist)hs.push({n:r.name,s:r.tip,d});hs.sort((a,b)=>b.s-a.s);hs=hs.slice(0,10);
+ try{localStorage.setItem('loeschmeile-hs',JSON.stringify(hs));}catch(e){}
+ const msg={type:'end',mode:setup.mode,teams,winner,served:S.served,lost:S.lost,rep:Math.round(S.rep),players:plist,hs};broadcast(msg);onEnd(msg);
 }
-function backToLobby() { if (!isHost) return; S = null; vertIdx++; pubRot = [0, 0]; rebuild(); show('s-wait'); }
+function backToLobby(){if(!isHost)return;S=null;rebuild();show('s-wait');}
 
 // ================= Gemeinsam: Spielansicht =================
-let V = null, curStation = null, rafOn = false, lastFrame = 0, toastT = null, logLines = [];
-const Z = { type: 'pils', level: 0, foam: 0, pouring: false, kegTaps: 0 }; const WASH = { prog: 0, lx: 0, ly: 0, down: false };
-let CARRY = null, HOLD = null, vTarget = 0;
-function myPub() { return V ? V.pubs.find(p => p.pid === me.pid) || null : null; }
-function pubNameOf(pid) { const sp = setup.pubs.find(x => x.pid === pid); return sp ? sp.name : 'Kneipe'; }
-function demand(P) { const d = { pils: 0, weizen: 0, radler: 0 }; for (const g of P.guests) if (!g[5]) d[g[3]]++; for (const b of P.beers) d[b[1]] = Math.max(0, d[b[1]] - 1); return d; }
-function showToast(t, quick) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), quick ? 400 : 1400); }
-function addLog(t) { logLines.push(t); if (logLines.length > 2) logLines.shift(); $('log').innerHTML = logLines.map(esc).join('<br>'); }
+let V=null,cv,ctx,cw=0,ch=0,dpr=1,sc=1,ox=0,oy=0,rafOn=false,lastFrame=0,toastT=null,logT=null,stick=null,actDownFlag=false;
+const FX=[],VP={};
+function onStart(msg){if(msg&&msg.round)ROUND=msg.round;inGame=true;V=null;FX.length=0;for(const k in VP)delete VP[k];stick=null;show('s-game');resize();updateHud();if(!rafOn){rafOn=true;requestAnimationFrame(frame);}}
+function resize(){cv=cv||$('cv');ctx=ctx||cv.getContext('2d');dpr=Math.min(2,window.devicePixelRatio||1);const r=cv.getBoundingClientRect();cw=r.width||window.innerWidth;ch=r.height||(window.innerHeight-70);cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);sc=Math.min(cw/W,ch/H);ox=(cw-W*sc)/2;oy=(ch-H*sc)/2;}
+window.addEventListener('resize',()=>{if(inGame)resize();});
+function showToast(t,quick){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),quick?500:1500);}
+function addLog(t){$('log').textContent=t;clearTimeout(logT);logT=setTimeout(()=>{$('log').textContent='';},3000);}
+function myP(){return V?V.P.find(p=>p[0]===myId):null;}
+function updateHud(){
+ $('hudTime').textContent=fmt(Math.max(0,!V||V.st==='count'?ROUND:V.left));
+ const p=myP();$('hudTip').textContent=(p?p[9]:0)+' €';$('hudMe').textContent=myName+(setup.mode==='duel'&&me.team>=0?' · '+TEAMN[me.team]:'');
+ if(setup.mode==='duel'&&V){const a=setup.teams[0]?Math.max(1,setup.teams[0].members.length):1,b=setup.teams[1]?Math.max(1,setup.teams[1].members.length):1;$('hudPub').innerHTML=`<span style="color:${TEAMC[0]}">${(V.tt[0]/a).toFixed(1)}</span> : <span style="color:${TEAMC[1]}">${(V.tt[1]/b).toFixed(1)}</span> €/Kopf${V.sperr?' ⏰×2':''}`;$('repWrap').style.display='none';}
+ else{$('hudPub').textContent='🍻 '+setup.name+(V&&V.sperr?' ⏰×2':'');$('repWrap').style.display='block';if(V)$('repBar').style.width=V.rep+'%';}
+ if(V&&V.st==='count')showToast(Math.ceil(V.left)>0?String(Math.ceil(V.left)):'LOS!',true);
+}
+function applySnap(s){V=s;updateHud();for(const e of s.ev)onEv(e);updateActBtn();}
+function onEv(e){
+ const mine=e.id===myId;
+ switch(e.e){
+  case 'served':{const nm=setup.members[e.id]?setup.members[e.id].name:'?';FX.push({x:e.x,y:e.y,t:'+'+e.tip+' €',life:1.3,c:'#b5e853'});if(mine)showToast('+'+e.tip+' €',true);else addLog(nm+' serviert (+'+e.tip+' €)');break;}
+  case 'lost':FX.push({x:e.x,y:e.y,t:'😡',life:1.3,c:'#e63946'});addLog('Ein Gast ist gegangen!');break;
+  case 'spill':FX.push({x:e.x,y:e.y-40,t:'💦',life:1.2,c:'#fff'});if(mine)showToast('💦 Übergeschäumt!');break;
+  case 'msg':if(mine){if(e.t.startsWith('★')||e.t.startsWith('✨')||e.t.startsWith('🛢'))showToast(e.t,true);else addLog(e.t);}break;
+  case 'event':showToast(EVENTS[e.k]);break;
+  case 'sperr':showToast('⏰ Sperrstunde – doppeltes Trinkgeld!');break;
+ }
+}
+function hintFor(p){
+ if(!p)return '…';const pos={x:p[1],y:p[2]},carry=p[3],n=nearest(pos,V.fl.map(f=>({x:f[0],y:f[1]})));
+ if(p[6]>=0)return p[7]==='pour'?'🍺 Zapfen…\nloslassen!':p[7]==='wash'?'🧽 Spülen…':'🛢️ Fass…';
+ if(!n)return carry?'⬇️ Ablegen':'…';
+ if(n.k==='shelf')return !carry?(V.shelf>0?'🥛 Glas nehmen':'Regal leer'):carry==='clean'?'🥛 Zurückstellen':'⬇️ Ablegen';
+ if(n.k==='floor')return !carry?'✋ Aufheben':'⬇️ Ablegen';
+ if(n.k==='tap')return V.taps[n.i]?'🛢️ Fass wechseln\n(halten)':carry==='clean'?'🍺 Zapfen\n(halten)':'Glas nötig';
+ if(n.k==='sink')return carry==='dirty'?'🧽 Spülen\n(halten)':'Spüle';
+ if(n.k==='table'){const T=V.tb[n.i];if(Array.isArray(T)&&!T[2]&&carry==='beer')return '🍻 Servieren';if(T===1&&!carry)return '🧹 Abräumen';if(Array.isArray(T)&&!T[2])return TYPES[T[0]].n+' gewünscht';return carry?'⬇️ Ablegen':'…';}
+ return '…';
+}
+function updateActBtn(){const p=myP();$('actBtn').textContent=hintFor(p);$('actBtn').style.display=p?'block':'none';}
 
-function onStart(msg) {
-  if (msg && msg.round) ROUND = msg.round;
-  inGame = true; V = null; logLines = []; CARRY = null; HOLD = null; Z.level = 0; Z.foam = 0; Z.pouring = false; WASH.prog = 0;
-  curStation = me.stations[0] || null; show('s-game'); $('log').textContent = ''; buildStation(); renderTabs(); updateHud();
-  if (!rafOn) { rafOn = true; requestAnimationFrame(frame); }
+// ---------- Rendering ----------
+function frame(now){
+ if(!inGame){rafOn=false;return;}requestAnimationFrame(frame);
+ const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;const tm=now/1000;
+ ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#1a0f07';ctx.fillRect(0,0,cw,ch);
+ ctx.save();ctx.translate(ox,oy);ctx.scale(sc,sc);
+ ctx.fillStyle='#8b5a2b';ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=2;for(let y=TOP;y<BOT;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+ ctx.fillStyle='#5a3a1e';ctx.fillRect(0,0,W,TOP);ctx.fillRect(0,BOT,W,H-BOT);ctx.fillStyle='#3b2412';ctx.fillRect(0,TOP-14,W,14);ctx.fillRect(0,BOT,W,14);
+ drawShelf();TAPS.forEach((t,i)=>drawTap(t,i));drawSink(tm);
+ if(V){
+  for(const q of V.pd){ctx.fillStyle='rgba(255,220,80,.45)';ctx.beginPath();ctx.ellipse(q[0],q[1],34,18,0,0,7);ctx.fill();}
+  TABLES.forEach((T,i)=>drawTable(T,V.tb[i],tm));
+  for(const f of V.fl)drawItem(f[0],f[1],f[2],f[3],0,.8);
+  for(const p of V.P){let v=VP[p[0]];if(!v||Math.hypot(v.x-p[1],v.y-p[2])>200)v=VP[p[0]]={x:p[1],y:p[2]};v.x+=(p[1]-v.x)*.5;v.y+=(p[2]-v.y)*.5;}
+  for(const k in VP)if(!V.P.some(p=>p[0]===k))delete VP[k];
+  V.P.slice().sort((a,b)=>a[2]-b[2]).forEach(p=>drawPlayer(p,VP[p[0]],tm));
+ }else TABLES.forEach(T=>drawTable(T,0,tm));
+ for(let i=FX.length-1;i>=0;i--){const f=FX[i];f.life-=dt;f.y-=30*dt;if(f.life<=0){FX.splice(i,1);continue;}ctx.globalAlpha=Math.min(1,f.life);ctx.font='bold 30px "Comic Sans MS",sans-serif';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#000';ctx.fillStyle=f.c;ctx.strokeText(f.t,f.x,f.y);ctx.fillText(f.t,f.x,f.y);}ctx.globalAlpha=1;
+ if(V&&V.blas){ctx.font='60px sans-serif';ctx.textAlign='center';ctx.fillText('🎺',80+((tm*120)%(W+160))-80,TOP+60+Math.sin(tm*8)*10);}
+ ctx.restore();
+ if(stick){ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(stick.ox,stick.oy,50,0,7);ctx.stroke();const v=stickVec(stick);ctx.fillStyle='rgba(255,201,74,.75)';ctx.beginPath();ctx.arc(stick.ox+v.x*50,stick.oy+v.y*50,24,0,7);ctx.fill();}
 }
-function updateHud() {
-  $('hudTime').textContent = fmt(Math.max(0, !V || V.st === 'count' ? ROUND : V.left));
-  const t = V ? (V.tips.find(x => x[0] === myId) || [0, 0])[1] : 0;
-  $('hudTip').textContent = me.vert ? ('Chaos ' + (V ? V.chaos : 0)) : (t + ' €');
-  $('hudMe').textContent = myName + (curStation ? ' · ' + ST[curStation].i + ' ' + ST[curStation].n : '');
-  const P = myPub();
-  if (me.vert) { $('pubName').textContent = '🎩 Brauereivertreter'; $('repBar').style.width = '0%'; $('pubStat').innerHTML = ''; }
-  else if (P) {
-    $('pubName').textContent = '🍻 ' + pubNameOf(P.pid); $('repBar').style.width = P.rep + '%';
-    const O = V.pubs.find(p => p.pid !== P.pid); let s = `🥛${P.clean} 🧽${P.dirty} 🍺${P.beers.length} 👥${P.guests.filter(g => !g[5]).length}`;
-    if (O) s += `<br>Ihr ${(P.tips / P.size).toFixed(1)} €/Kopf · Gegner ${(O.tips / O.size).toFixed(1)}`; if (V.sperr) s += '<br>⏰ Sperrstunde ×2'; $('pubStat').innerHTML = s;
-  } else { $('pubName').textContent = ''; $('pubStat').innerHTML = ''; }
-  if (V && V.st === 'count') showToast(Math.ceil(V.left) > 0 ? String(Math.ceil(V.left)) : 'LOS!', true);
-}
-function renderTabs() {
-  const el = $('tabs'); if (!me.stations || me.stations.length < 2) { el.style.display = 'none'; return; } el.style.display = 'flex'; const P = myPub();
-  el.innerHTML = me.stations.map(s => {
-    let b = 0; if (P) { if (s === 'zapfer') { const d = demand(P); b = d.pils + d.weizen + d.radler; } if (s === 'kellner') b = P.beers.length ? P.guests.filter(g => !g[5]).length : 0; if (s === 'spueler') b = P.dirty; if (s === 'rausschmeisser') b = P.trouble.length; }
-    return `<button class="${s === curStation ? 'sel' : 'secondary'}" data-st="${s}">${ST[s].i} ${ST[s].n}${b ? `<span class="b">${b}</span>` : ''}</button>`;
-  }).join('');
-}
-function applySnap(s) { V = s; updateHud(); for (const e of s.ev) onEv(e); if (!(CARRY && curStation === 'kellner')) updateStation(); renderTabs(); }
-function onEv(e) {
-  const own = e.pid === undefined || e.pid === me.pid || me.vert;
-  switch (e.e) {
-    case 'served': if (e.k === myId || e.z === myId) { const mine = (e.k === myId && e.z === myId) ? e.tip : (e.k === myId ? Math.ceil(e.tip / 2) : Math.floor(e.tip / 2)); showToast('+' + mine + ' €'); } if (own) addLog(`${e.n} serviert → +${e.tip} € Trinkgeld`); break;
-    case 'lost': if (own) addLog(`😡 Ein Gast ist gegangen (${pubNameOf(e.pid)})`); break;
-    case 'event': if (own) { showToast(EVENTS[e.k].i + ' ' + EVENTS[e.k].n + '!'); addLog(`${EVENTS[e.k].i} ${EVENTS[e.k].n} in „${pubNameOf(e.pid)}“${e.v ? ' – der Vertreter war\'s!' : ''}`); } break;
-    case 'sperr': showToast('⏰ Sperrstunde – doppeltes Trinkgeld!'); addLog('⏰ Sperrstunde: alles zählt doppelt!'); break;
-    case 'spill': if (own) addLog('💦 Bier verschüttet – Glas kommt in die Spüle'); break;
-    case 'wrong': if (own) addLog('❌ Falsches Bier – der Gast ist sauer'); break;
-    case 'noglass': if (own) addLog('🥛 ' + (e.t || 'Kein sauberes Glas – Bier weg!')); break;
-    case 'kegok': if (own) addLog('🛢️ Fass gewechselt!'); break;
-    case 'trouble': if (own) { if (curStation === 'rausschmeisser') showToast('😠 Randalierer!'); addLog('😠 Ein Randalierer macht Ärger'); } break;
-    case 'riot': if (own) { showToast('💥 Randale!'); addLog('💥 Randale – Bier umgekippt, Gäste genervt'); } break;
-    case 'bounced': if (own) addLog('💪 Randalierer rausgeworfen'); break;
-  }
-}
-function buildStation() {
-  const st = $('stage'); CARRY = null; HOLD = null; $('tray').style.display = 'none';
-  if (!curStation) { st.innerHTML = '<div class="big">⏳ Du bist ab der nächsten Schicht dabei</div>'; return; }
-  if (curStation === 'zapfer') { Z.level = 0; Z.foam = 0; Z.pouring = false; Z.kegTaps = 0;
-    st.innerHTML = `<div class="station"><div class="row" id="typeRow"></div><div class="glasswrap" id="pourArea"><div class="glass"><div class="zone" id="zoneL"></div><div class="zone fz" id="zoneF"></div><div class="beer" id="zbeer"></div><div class="foam" id="zfoam"></div></div></div><button id="kegBtn" style="display:none">🛢️ Fass leer – 12× tippen zum Wechseln</button><div class="small" id="zapHint"></div><button id="zapDone">🍺 Auf den Tresen!</button></div>`; }
-  else if (curStation === 'spueler') { WASH.prog = 0;
-    st.innerHTML = `<div class="station"><div class="small">Schmutzig: <b id="dirtyN">0</b> · Sauber: <b id="cleanN">0</b></div><div class="glasswrap" id="washArea"><div class="glass"><div class="dirt" id="dirt"></div></div></div><div class="bar"><div id="washBar" style="width:0%"></div></div><div class="small" id="washHint">Finger aufs Glas und kreisend rubbeln!</div></div>`; }
-  else if (curStation === 'kellner') st.innerHTML = `<div class="station"><div class="small">Gäste am Tresen</div><div class="seats" id="seats"></div><div class="small">Bier auf den richtigen Gast ziehen – ruhig, sonst kippt's! 🍺</div><div class="small">Tresen</div><div class="counter" id="counterEl"></div></div>`;
-  else if (curStation === 'rausschmeisser') st.innerHTML = `<div class="station"><div class="small">Randalierer antippen und 1,2 s festhalten</div><div id="troubles" style="display:flex;flex-direction:column;gap:.5em"></div><div class="big" id="bHint">Alles ruhig… 👀</div></div>`;
-  else if (curStation === 'vertreter') st.innerHTML = `<div class="station"><div id="vpubs" style="display:flex;gap:.5em"></div><div class="small">Ziel wählen</div><div class="opt" id="vtarget"></div><div id="vevents" style="display:flex;flex-direction:column;gap:.5em"></div><div class="small">Chaos-Punkte: vergraulte Gäste +5, verschüttetes Bier +3</div></div>`;
-  updateStation();
-}
-function updateStation() {
-  if (!V) return; const P = myPub();
-  if (curStation === 'zapfer' && P) {
-    const d = demand(P);
-    $('typeRow').innerHTML = TYPE_KEYS.map(k => `<button class="typebtn${k === Z.type ? ' sel' : ''}" data-type="${k}" style="background:${TYPES[k].c}">${TYPES[k].n}${d[k] ? ` <span class="b">${d[k]}</span>` : ''}</button>`).join('');
-    const T = TYPES[Z.type], mid = (T.lvl[0] + T.lvl[1]) / 2;
-    $('zoneL').style.bottom = (T.lvl[0] * 100) + '%'; $('zoneL').style.height = ((T.lvl[1] - T.lvl[0]) * 100) + '%';
-    $('zoneF').style.bottom = ((mid + FOAM_ZONE[0]) * 100) + '%'; $('zoneF').style.height = ((FOAM_ZONE[1] - FOAM_ZONE[0]) * 100) + '%'; $('zbeer').style.background = T.c;
-    $('kegBtn').style.display = P.keg ? 'block' : 'none'; $('pourArea').style.display = P.keg ? 'none' : 'flex';
-    $('zapHint').textContent = P.keg ? 'Ohne Fass kein Bier!' : (P.clean <= 0 && Z.level === 0 ? '⚠️ Kein sauberes Glas – Spüler, Tempo!' : (P.beers.length >= COUNTER_MAX ? 'Tresen voll – Kellner, ausliefern!' : 'Glas gedrückt halten = zapfen. Bier in die grüne, Schaum in die weiße Zone.'));
-    $('zapDone').disabled = Z.level < 0.3 || P.beers.length >= COUNTER_MAX || !!P.keg;
-  }
-  if (curStation === 'spueler' && P) { $('dirtyN').textContent = P.dirty; $('cleanN').textContent = P.clean; $('washHint').textContent = P.dirty > 0 ? 'Finger aufs Glas und kreisend rubbeln!' : 'Nichts zu spülen – alle Gläser sauber. 😎'; $('dirt').style.opacity = P.dirty > 0 ? String(1 - WASH.prog) : '0'; }
-  if (curStation === 'kellner' && P) {
-    const seats = [];
-    for (let s = 0; s < SEATS; s++) {
-      const g = P.guests.find(x => x[1] === s);
-      seats.push(g ? `<div class="guest${g[5] ? ' drink' : ''}" data-gid="${g[0]}" data-type="${g[3]}"><div class="f">${g[2]}</div><div class="o" style="background:${TYPES[g[3]].c}">${TYPES[g[3]].n}</div><div class="p"><div style="width:${g[4] * 100}%;background:${g[4] > .5 ? '#b5e853' : g[4] > .25 ? '#ffc94a' : '#e63946'}"></div></div></div>` : '<div class="guest empty"></div>');
-    }
-    const sh = seats.join(''); if ($('seats').innerHTML !== sh) $('seats').innerHTML = sh;
-    const beers = P.beers.map(b => `<div class="beer" data-bid="${b[0]}" data-type="${b[1]}"><div class="mug"><i style="background:${TYPES[b[1]].c}"></i><b></b></div>${TYPES[b[1]].n}<br>${'★'.repeat(1 + Math.round(b[2] * 2))}</div>`);
-    while (beers.length < COUNTER_MAX) beers.push('<div class="beer empty"></div>');
-    const bh = beers.join(''); if ($('counterEl').innerHTML !== bh) $('counterEl').innerHTML = bh;
-  }
-  if (curStation === 'rausschmeisser' && P) {
-    $('troubles').innerHTML = P.trouble.map(t => `<div class="trouble" data-tid="${t[0]}"><div class="f">😠</div>Randalierer! Noch ${Math.ceil(t[1])} s<div class="bar" style="margin-top:.3em"><div id="hold${t[0]}" style="width:${HOLD && HOLD.id === t[0] ? HOLD.prog * 100 : 0}%;background:#b5e853"></div></div></div>`).join('');
-    $('bHint').style.display = P.trouble.length ? 'none' : 'flex';
-  }
-  if (curStation === 'vertreter') {
-    if (!V.pubs.some(p => p.pid === vTarget)) vTarget = V.pubs[0] ? V.pubs[0].pid : 0;
-    $('vpubs').innerHTML = V.pubs.map(p => `<div class="vbox" style="flex:1"><b>${esc(pubNameOf(p.pid))}</b><br>👥${p.guests.filter(g => !g[5]).length} 🍺${p.beers.length} 🥛${p.clean}<br>Ruf ${p.rep} · ${p.tips} €${p.keg ? '<br>🛢️ Fass leer' : ''}${p.blas ? '<br>🎺 Blasmusik' : ''}</div>`).join('');
-    $('vtarget').innerHTML = V.pubs.map(p => `<button class="${p.pid === vTarget ? 'sel' : 'secondary'}" data-vt="${p.pid}">${esc(pubNameOf(p.pid))}</button>`).join('');
-    $('vevents').innerHTML = Object.keys(EVENTS).map(k => { const cd = V.vcd[k] || 0; return `<button data-ev="${k}" ${cd > 0 ? 'disabled' : ''}>${EVENTS[k].i} ${EVENTS[k].n}${cd > 0 ? ' (' + Math.ceil(cd) + ' s)' : ''}</button>`; }).join('');
-  }
-}
-
-// ---------- Zapf-Qualität ----------
-function zapQuality() {
-  const T = TYPES[Z.type], lm = (T.lvl[0] + T.lvl[1]) / 2, lw = (T.lvl[1] - T.lvl[0]) / 2, fm = (FOAM_ZONE[0] + FOAM_ZONE[1]) / 2, fw = (FOAM_ZONE[1] - FOAM_ZONE[0]) / 2;
-  const ql = clamp(1 - Math.max(0, Math.abs(Z.level - lm) - lw) / .15, 0, 1), qf = clamp(1 - Math.max(0, Math.abs(Z.foam - fm) - fw) / .12, 0, 1);
-  return +(ql * .6 + qf * .4).toFixed(2);
-}
-
-// ---------- Animationsschleife ----------
-function frame(now) {
-  if (!inGame) { rafOn = false; return; }
-  requestAnimationFrame(frame);
-  const dt = Math.min(.05, (now - lastFrame) / 1000 || .016); lastFrame = now;
-  if (curStation === 'zapfer') {
-    const T = TYPES[Z.type];
-    if (Z.pouring) { Z.level += T.fill * dt; Z.foam += T.foam * dt; } else Z.foam = Math.max(0, Z.foam - .10 * dt);
-    if (Z.level + Z.foam > 1.05) { Z.level = 0; Z.foam = 0; Z.pouring = false; sendAction({ type: 'spill' }); showToast('💦 Übergeschäumt!'); }
-    const zb = $('zbeer'), zf = $('zfoam');
-    if (zb && zf) { zb.style.height = (Z.level * 100) + '%'; zf.style.bottom = (Z.level * 100) + '%'; zf.style.height = (Z.foam * 100) + '%'; }
-  }
-  if (HOLD && curStation === 'rausschmeisser') {
-    HOLD.prog += dt / 1.2; const b = $('hold' + HOLD.id); if (b) b.style.width = (HOLD.prog * 100) + '%';
-    if (HOLD.prog >= 1) { sendAction({ type: 'bounce', id: HOLD.id }); HOLD = null; showToast('💪 Raus!'); }
-  }
+function drawShelf(){ctx.fillStyle='#3b2412';ctx.fillRect(SHELF.x-55,SHELF.y-45,110,90);ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.strokeRect(SHELF.x-55,SHELF.y-45,110,90);const n=V?V.shelf:0;
+ for(let i=0;i<Math.min(n,12);i++){const c=i%4,r=Math.floor(i/4);drawGlass(SHELF.x-38+c*25,SHELF.y-22+r*26,'clean',null,0,.7);}
+ ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.lineWidth=4;ctx.strokeStyle='#000';ctx.strokeText('🥛 '+n,SHELF.x,SHELF.y+70);ctx.fillText('🥛 '+n,SHELF.x,SHELF.y+70);}
+function drawTap(t,i){const T=TYPES[t.t],empty=V&&V.taps[i];ctx.fillStyle='#3b2412';ctx.fillRect(t.x-50,t.y-45,100,90);ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.strokeRect(t.x-50,t.y-45,100,90);
+ ctx.fillStyle=empty?'#555':T.c;ctx.beginPath();ctx.roundRect(t.x-22,t.y-35,44,50,8);ctx.fill();ctx.stroke();ctx.fillStyle='#ccc';ctx.fillRect(t.x-6,t.y-52,12,22);ctx.strokeRect(t.x-6,t.y-52,12,22);ctx.fillStyle='#999';ctx.fillRect(t.x-14,t.y+10,28,10);
+ ctx.font='bold 17px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.lineWidth=4;ctx.strokeStyle='#000';const lbl=empty?'LEER!':T.n;ctx.strokeText(lbl,t.x,t.y+40);ctx.fillStyle=empty?'#ff6b6b':'#fff';ctx.fillText(lbl,t.x,t.y+40);
+ ctx.font='bold 20px sans-serif';ctx.strokeText(lbl,t.x,t.y+70);ctx.fillText(lbl,t.x,t.y+70);}
+function drawSink(tm){ctx.fillStyle='#9fb3c8';ctx.beginPath();ctx.roundRect(SINK.x-80,SINK.y-30,160,60,12);ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#6fa8dc';ctx.beginPath();ctx.roundRect(SINK.x-65,SINK.y-18,130,36,8);ctx.fill();
+ ctx.font='26px sans-serif';ctx.textAlign='center';ctx.fillText('🫧',SINK.x+Math.sin(tm*2)*20,SINK.y+8);ctx.font='bold 18px sans-serif';ctx.fillStyle='#fff';ctx.lineWidth=4;ctx.strokeStyle='#000';ctx.strokeText('🧽 Spüle',SINK.x,SINK.y-42);ctx.fillText('🧽 Spüle',SINK.x,SINK.y-42);}
+function drawTable(T,g,tm){ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.arc(T.x+5,T.y+8,48,0,7);ctx.fill();ctx.fillStyle='#c98b4a';ctx.beginPath();ctx.arc(T.x,T.y,48,0,7);ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=4;ctx.stroke();ctx.fillStyle='#a86f35';ctx.beginPath();ctx.arc(T.x,T.y,36,0,7);ctx.fill();
+ if(Array.isArray(g)){const [type,pat,drink,face]=g;ctx.font='44px sans-serif';ctx.textAlign='center';ctx.fillText(face,T.x,T.y+16);
+  if(drink){ctx.font='26px sans-serif';ctx.fillText('🍺',T.x+30,T.y-10);}
+  else{const bx=T.x,by=T.y-78;ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx-48,by-22,96,44,12);ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.stroke();ctx.beginPath();ctx.moveTo(bx-10,by+22);ctx.lineTo(bx,by+34);ctx.lineTo(bx+10,by+22);ctx.fill();ctx.stroke();
+   drawGlass(bx-28,by,'beer',type,1,.75);ctx.font='bold 17px sans-serif';ctx.fillStyle='#000';ctx.textAlign='left';ctx.fillText(TYPES[type].n,bx-12,by+6);
+   ctx.fillStyle='#000';ctx.fillRect(bx-40,by+28,80,8);ctx.fillStyle=pat>.5?'#b5e853':pat>.25?'#ffc94a':'#e63946';ctx.fillRect(bx-39,by+29,78*pat,6);
+   if(pat<.25&&Math.sin(tm*10)>0){ctx.font='22px sans-serif';ctx.textAlign='center';ctx.fillText('💢',bx+50,by-14);}}}
+ else if(g===1){drawGlass(T.x,T.y+6,'dirty',null,0,1);ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText('abräumen',T.x,T.y+42);ctx.fillText('abräumen',T.x,T.y+42);}}
+function drawGlass(x,y,k,t,q,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.lineWidth=3;ctx.strokeStyle=k==='dirty'?'#666':'#dfe7ee';ctx.fillStyle=k==='dirty'?'rgba(120,90,40,.7)':'rgba(255,255,255,.15)';
+ ctx.beginPath();ctx.roundRect(-12,-18,24,36,[2,2,7,7]);ctx.fill();ctx.stroke();
+ if(k==='beer'){ctx.fillStyle=TYPES[t].c;ctx.fillRect(-11,-8,22,25);ctx.fillStyle='#fff8e7';ctx.fillRect(-11,-14,22,7);}ctx.restore();}
+function drawItem(x,y,k,t,q,s){drawGlass(x,y,k,t,q,s);}
+function drawPlayer(p,v,tm){
+ const [id,,,carry,ct,cq,prog,act,ai,,team]=p,m=setup.members[id],col=m?m.c:'#aaa',name=m?m.name:'?',mine=id===myId,x=v.x,y=v.y,moving=false;
+ ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(x,y+PR*.9,PR*.9,PR*.35,0,0,7);ctx.fill();
+ if(mine){ctx.strokeStyle='#ffc94a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,PR+7,0,7);ctx.stroke();}
+ ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,PR,0,7);ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.stroke();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(x-11,y-2,22,20,4);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#f5d0b0';ctx.beginPath();ctx.arc(x,y-9,11,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#000';ctx.beginPath();ctx.arc(x-4,y-11,1.8,0,7);ctx.arc(x+4,y-11,1.8,0,7);ctx.fill();
+ ctx.font='bold 15px "Comic Sans MS",sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#000';ctx.fillStyle=mine?'#ffc94a':'#fff';ctx.strokeText(name,x,y+PR+18);ctx.fillText(name,x,y+PR+18);
+ if(carry){drawGlass(x+PR-2,y-PR-4,carry,ct,cq,.9);if(carry==='beer'){ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffc94a';ctx.strokeText(stars(cq),x+PR-2,y-PR+22);ctx.fillText(stars(cq),x+PR-2,y-PR+22);}}
+ if(prog>=0){const bx=x-40,by=y-PR-40;ctx.fillStyle='#000';ctx.fillRect(bx-2,by-2,84,16);
+  if(act==='pour'&&ai>=0){const T=TYPES[TAPS[ai].t];ctx.fillStyle='rgba(181,232,83,.9)';ctx.fillRect(bx+80*T.lo,by,80*(T.hi-T.lo),12);ctx.fillStyle=T.c;ctx.fillRect(bx,by+3,80*Math.min(1,prog),6);}
+  else{ctx.fillStyle=act==='wash'?'#8fd3f4':'#ffc94a';ctx.fillRect(bx,by,80*Math.min(1,prog),12);}}
 }
 
 // ---------- Steuerung ----------
-function endCarry() { CARRY = null; $('tray').style.display = 'none'; document.querySelectorAll('.guest.hot').forEach(g => g.classList.remove('hot')); updateStation(); }
-function guestAt(x, y) { const el = document.elementFromPoint(x, y); return el ? el.closest('.guest[data-gid]') : null; }
-function bindControls() {
-  const css = document.createElement('style'); css.textContent = '.glass .beer{border:0;padding:0;border-radius:0;background:none}'; document.head.appendChild(css);
-  const st = $('stage'), tray = $('tray');
-  $('tabs').addEventListener('pointerdown', e => { const b = e.target.closest('button[data-st]'); if (!b) return; e.preventDefault(); curStation = b.dataset.st; buildStation(); renderTabs(); updateHud(); });
-  st.addEventListener('pointerdown', e => {
-    const tb = e.target.closest('.typebtn'); if (tb) { e.preventDefault(); Z.type = tb.dataset.type; Z.level = 0; Z.foam = 0; updateStation(); return; }
-    const zd = e.target.closest('#zapDone'); if (zd) { if (zd.disabled || Z.level < .3) return; const q = zapQuality(); sendAction({ type: 'beer', t: Z.type, q }); showToast('★'.repeat(1 + Math.round(q * 2))); Z.level = 0; Z.foam = 0; return; }
-    const kb = e.target.closest('#kegBtn'); if (kb) { Z.kegTaps++; kb.textContent = '🛢️ Fass wechseln… ' + Z.kegTaps + '/12'; if (Z.kegTaps >= 12) { sendAction({ type: 'keg' }); Z.kegTaps = 0; } return; }
-    const vt = e.target.closest('button[data-vt]'); if (vt) { vTarget = +vt.dataset.vt; updateStation(); return; }
-    const ev = e.target.closest('button[data-ev]'); if (ev) { if (ev.disabled) return; sendAction({ type: 'vert', ev: ev.dataset.ev, pid: vTarget }); showToast(EVENTS[ev.dataset.ev].i + ' → ' + pubNameOf(vTarget)); return; }
-    if (curStation === 'zapfer' && e.target.closest('#pourArea')) { e.preventDefault(); const P = myPub(); if (P && P.clean <= 0 && Z.level === 0) { showToast('🥛 Kein Glas!', true); return; } Z.pouring = true; return; }
-    if (curStation === 'spueler' && e.target.closest('#washArea')) { e.preventDefault(); WASH.down = true; WASH.lx = e.clientX; WASH.ly = e.clientY; return; }
-    if (curStation === 'kellner') { const b = e.target.closest('.beer[data-bid]'); if (b) { e.preventDefault(); CARRY = { bid: +b.dataset.bid, type: b.dataset.type, x: e.clientX, y: e.clientY, wob: 0 }; tray.style.display = 'flex'; tray.style.left = e.clientX + 'px'; tray.style.top = e.clientY + 'px'; tray.style.borderColor = '#000'; b.style.visibility = 'hidden'; } return; }
-    if (curStation === 'rausschmeisser') { const t = e.target.closest('.trouble[data-tid]'); if (t) { e.preventDefault(); HOLD = { id: +t.dataset.tid, prog: 0 }; } }
-  });
-  st.addEventListener('pointermove', e => {
-    if (WASH.down && curStation === 'spueler') {
-      const d = Math.hypot(e.clientX - WASH.lx, e.clientY - WASH.ly); WASH.lx = e.clientX; WASH.ly = e.clientY; const P = myPub();
-      if (P && P.dirty > 0) { WASH.prog = Math.min(1, WASH.prog + d / 900); $('washBar').style.width = (WASH.prog * 100) + '%'; $('dirt').style.opacity = String(1 - WASH.prog);
-        if (WASH.prog >= 1) { sendAction({ type: 'clean' }); WASH.prog = 0; $('washBar').style.width = '0%'; showToast('✨ +2 €', true); } }
-      return;
-    }
-    if (CARRY && curStation === 'kellner') {
-      const sp = Math.hypot(e.clientX - CARRY.x, e.clientY - CARRY.y); CARRY.x = e.clientX; CARRY.y = e.clientY;
-      CARRY.wob = Math.max(0, CARRY.wob * .9 + (sp > 28 ? sp - 28 : 0));
-      tray.style.left = e.clientX + 'px'; tray.style.top = e.clientY + 'px'; tray.style.borderColor = CARRY.wob > 40 ? '#e63946' : '#000';
-      document.querySelectorAll('.guest.hot').forEach(g => g.classList.remove('hot')); const g = guestAt(e.clientX, e.clientY); if (g) g.classList.add('hot');
-      if (CARRY.wob > 90) { sendAction({ type: 'drop', b: CARRY.bid }); showToast('💦 Umgekippt!'); endCarry(); }
-    }
-  });
-  const up = e => {
-    Z.pouring = false; WASH.down = false;
-    if (HOLD) { HOLD = null; updateStation(); }
-    if (CARRY && curStation === 'kellner') {
-      const g = guestAt(e.clientX, e.clientY);
-      if (g && !g.classList.contains('drink')) { sendAction({ type: 'serve', b: CARRY.bid, g: +g.dataset.gid }); if (g.dataset.type !== CARRY.type) showToast('❌ Falsches Bier!'); }
-      endCarry();
-    }
-  };
-  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up); st.addEventListener('pointerleave', up);
+function stickVec(s){let x=(s.x-s.ox)/50,y=(s.y-s.oy)/50;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l;}return{x,y,l:Math.min(1,l)};}
+function bindControls(){
+ const c=$('cv'),b=$('actBtn');
+ c.addEventListener('pointerdown',e=>{e.preventDefault();if(!inGame||stick||!myP())return;stick={id:e.pointerId,ox:e.clientX,oy:e.clientY,x:e.clientX,y:e.clientY};});
+ c.addEventListener('pointermove',e=>{if(stick&&stick.id===e.pointerId){stick.x=e.clientX;stick.y=e.clientY;}});
+ const up=e=>{if(stick&&stick.id===e.pointerId){stick=null;sendAction({type:'in',x:0,y:0});}};
+ c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+ setInterval(()=>{if(inGame&&stick){const v=stickVec(stick);sendAction({type:'in',x:+v.x.toFixed(2),y:+v.y.toFixed(2)});}},40);
+ b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!inGame)return;actDownFlag=true;sendAction({type:'act',d:1});});
+ const bu=e=>{e.preventDefault();if(actDownFlag){actDownFlag=false;sendAction({type:'act',d:0});}};
+ b.addEventListener('pointerup',bu);b.addEventListener('pointercancel',bu);b.addEventListener('pointerleave',bu);
 }
-
-// ---------- Ende ----------
-function onEnd(msg) {
-  inGame = false; CARRY = null; HOLD = null; $('tray').style.display = 'none';
-  $('endPubs').innerHTML = msg.pubs.map(p => `<div class="pub"${msg.winner === p.pid ? ' style="border-color:#b5e853"' : ''}><h3>${msg.winner === p.pid ? '🏆 ' : ''}${esc(p.name)}</h3><div class="small" style="text-align:left">${p.served} Bier serviert · ${p.lost} Gäste vergrault · Ruf ${p.rep}<br>${p.tips} € Trinkgeld${msg.pubs.length > 1 ? ` (${p.per} € pro Kopf)` : ''}</div></div>`).join('');
-  $('ranking').innerHTML = msg.players.map((r, i) => `<div class="member">${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'} ${esc(r.name)}${r.vert ? ' 🎩' : ''}<span>${r.vert ? r.chaos + ' Chaos' : r.tip + ' €' + (r.pub && msg.pubs.length > 1 ? ' · ' + esc(r.pub) : '')}</span></div>`).join('');
-  $('hsList').innerHTML = msg.hs.map(h => `<li>${esc(h.n)} – <b>${h.s} €</b> <span class="small">${esc(h.p)} · ${esc(h.d)}</span></li>`).join('');
-  show('s-end');
+function onEnd(msg){
+ inGame=false;stick=null;
+ $('endPubs').innerHTML=msg.mode==='duel'?msg.teams.map(t=>`<div class="pub" style="border-color:${msg.winner===t.tid?'#b5e853':TEAMC[t.tid]}"><h3 style="color:${TEAMC[t.tid]}">${msg.winner===t.tid?'🏆 ':''}${esc(t.name)}</h3><div class="small" style="text-align:left">${t.tips} € Trinkgeld · ${t.per} € pro Kopf</div></div>`).join('')+(msg.winner===null?'<p class="small">Unentschieden!</p>':'')
+  :`<div class="pub"><h3>🍻 ${esc(msg.teams[0].name)}</h3><div class="small" style="text-align:left">${msg.served} Bier serviert · ${msg.lost} Gäste vergrault · Ruf ${msg.rep}<br>${msg.teams[0].tips} € Trinkgeld insgesamt</div></div>`;
+ $('ranking').innerHTML=msg.players.map((r,i)=>`<div class="member">${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${esc(r.name)}<span>${r.tip} €${msg.mode==='duel'?' · '+TEAMN[r.team]:''}</span></div>`).join('');
+ $('hsList').innerHTML=msg.hs.map(h=>`<li>${esc(h.n)} – <b>${h.s} €</b> <span class="small">${esc(h.d)}</span></li>`).join('');
+ show('s-end');
 }
 bindControls();
 </script>
