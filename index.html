@@ -460,5 +460,107 @@ function updateStation() {
   }
   if (curStation === 'spueler' && P) { $('dirtyN').textContent = P.dirty; $('cleanN').textContent = P.clean; $('washHint').textContent = P.dirty > 0 ? 'Finger aufs Glas und kreisend rubbeln!' : 'Nichts zu spülen – alle Gläser sauber. 😎'; $('dirt').style.opacity = P.dirty > 0 ? String(1 - WASH.prog) : '0'; }
   if (curStation === 'kellner' && P) {
-    const seats = []; for (let s = 0; s < SEATS; s++) { const g = P.guests.find(x => x[1] === s);
-      seats.push(g ? `<div class="guest${g[5] ? ' drink' : ''}" data-gid="${g[0]}" data-type="${g[3]}"><div class="f">${g[2]}</div><div class="o" style="background:${TYPES[g[3]].c}">${TYPES[g[3]].n}</div><div class
+    const seats = [];
+    for (let s = 0; s < SEATS; s++) {
+      const g = P.guests.find(x => x[1] === s);
+      seats.push(g ? `<div class="guest${g[5] ? ' drink' : ''}" data-gid="${g[0]}" data-type="${g[3]}"><div class="f">${g[2]}</div><div class="o" style="background:${TYPES[g[3]].c}">${TYPES[g[3]].n}</div><div class="p"><div style="width:${g[4] * 100}%;background:${g[4] > .5 ? '#b5e853' : g[4] > .25 ? '#ffc94a' : '#e63946'}"></div></div></div>` : '<div class="guest empty"></div>');
+    }
+    const sh = seats.join(''); if ($('seats').innerHTML !== sh) $('seats').innerHTML = sh;
+    const beers = P.beers.map(b => `<div class="beer" data-bid="${b[0]}" data-type="${b[1]}"><div class="mug"><i style="background:${TYPES[b[1]].c}"></i><b></b></div>${TYPES[b[1]].n}<br>${'★'.repeat(1 + Math.round(b[2] * 2))}</div>`);
+    while (beers.length < COUNTER_MAX) beers.push('<div class="beer empty"></div>');
+    const bh = beers.join(''); if ($('counterEl').innerHTML !== bh) $('counterEl').innerHTML = bh;
+  }
+  if (curStation === 'rausschmeisser' && P) {
+    $('troubles').innerHTML = P.trouble.map(t => `<div class="trouble" data-tid="${t[0]}"><div class="f">😠</div>Randalierer! Noch ${Math.ceil(t[1])} s<div class="bar" style="margin-top:.3em"><div id="hold${t[0]}" style="width:${HOLD && HOLD.id === t[0] ? HOLD.prog * 100 : 0}%;background:#b5e853"></div></div></div>`).join('');
+    $('bHint').style.display = P.trouble.length ? 'none' : 'flex';
+  }
+  if (curStation === 'vertreter') {
+    if (!V.pubs.some(p => p.pid === vTarget)) vTarget = V.pubs[0] ? V.pubs[0].pid : 0;
+    $('vpubs').innerHTML = V.pubs.map(p => `<div class="vbox" style="flex:1"><b>${esc(pubNameOf(p.pid))}</b><br>👥${p.guests.filter(g => !g[5]).length} 🍺${p.beers.length} 🥛${p.clean}<br>Ruf ${p.rep} · ${p.tips} €${p.keg ? '<br>🛢️ Fass leer' : ''}${p.blas ? '<br>🎺 Blasmusik' : ''}</div>`).join('');
+    $('vtarget').innerHTML = V.pubs.map(p => `<button class="${p.pid === vTarget ? 'sel' : 'secondary'}" data-vt="${p.pid}">${esc(pubNameOf(p.pid))}</button>`).join('');
+    $('vevents').innerHTML = Object.keys(EVENTS).map(k => { const cd = V.vcd[k] || 0; return `<button data-ev="${k}" ${cd > 0 ? 'disabled' : ''}>${EVENTS[k].i} ${EVENTS[k].n}${cd > 0 ? ' (' + Math.ceil(cd) + ' s)' : ''}</button>`; }).join('');
+  }
+}
+
+// ---------- Zapf-Qualität ----------
+function zapQuality() {
+  const T = TYPES[Z.type], lm = (T.lvl[0] + T.lvl[1]) / 2, lw = (T.lvl[1] - T.lvl[0]) / 2, fm = (FOAM_ZONE[0] + FOAM_ZONE[1]) / 2, fw = (FOAM_ZONE[1] - FOAM_ZONE[0]) / 2;
+  const ql = clamp(1 - Math.max(0, Math.abs(Z.level - lm) - lw) / .15, 0, 1), qf = clamp(1 - Math.max(0, Math.abs(Z.foam - fm) - fw) / .12, 0, 1);
+  return +(ql * .6 + qf * .4).toFixed(2);
+}
+
+// ---------- Animationsschleife ----------
+function frame(now) {
+  if (!inGame) { rafOn = false; return; }
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - lastFrame) / 1000 || .016); lastFrame = now;
+  if (curStation === 'zapfer') {
+    const T = TYPES[Z.type];
+    if (Z.pouring) { Z.level += T.fill * dt; Z.foam += T.foam * dt; } else Z.foam = Math.max(0, Z.foam - .10 * dt);
+    if (Z.level + Z.foam > 1.05) { Z.level = 0; Z.foam = 0; Z.pouring = false; sendAction({ type: 'spill' }); showToast('💦 Übergeschäumt!'); }
+    const zb = $('zbeer'), zf = $('zfoam');
+    if (zb && zf) { zb.style.height = (Z.level * 100) + '%'; zf.style.bottom = (Z.level * 100) + '%'; zf.style.height = (Z.foam * 100) + '%'; }
+  }
+  if (HOLD && curStation === 'rausschmeisser') {
+    HOLD.prog += dt / 1.2; const b = $('hold' + HOLD.id); if (b) b.style.width = (HOLD.prog * 100) + '%';
+    if (HOLD.prog >= 1) { sendAction({ type: 'bounce', id: HOLD.id }); HOLD = null; showToast('💪 Raus!'); }
+  }
+}
+
+// ---------- Steuerung ----------
+function endCarry() { CARRY = null; $('tray').style.display = 'none'; document.querySelectorAll('.guest.hot').forEach(g => g.classList.remove('hot')); updateStation(); }
+function guestAt(x, y) { const el = document.elementFromPoint(x, y); return el ? el.closest('.guest[data-gid]') : null; }
+function bindControls() {
+  const css = document.createElement('style'); css.textContent = '.glass .beer{border:0;padding:0;border-radius:0;background:none}'; document.head.appendChild(css);
+  const st = $('stage'), tray = $('tray');
+  $('tabs').addEventListener('pointerdown', e => { const b = e.target.closest('button[data-st]'); if (!b) return; e.preventDefault(); curStation = b.dataset.st; buildStation(); renderTabs(); updateHud(); });
+  st.addEventListener('pointerdown', e => {
+    const tb = e.target.closest('.typebtn'); if (tb) { e.preventDefault(); Z.type = tb.dataset.type; Z.level = 0; Z.foam = 0; updateStation(); return; }
+    const zd = e.target.closest('#zapDone'); if (zd) { if (zd.disabled || Z.level < .3) return; const q = zapQuality(); sendAction({ type: 'beer', t: Z.type, q }); showToast('★'.repeat(1 + Math.round(q * 2))); Z.level = 0; Z.foam = 0; return; }
+    const kb = e.target.closest('#kegBtn'); if (kb) { Z.kegTaps++; kb.textContent = '🛢️ Fass wechseln… ' + Z.kegTaps + '/12'; if (Z.kegTaps >= 12) { sendAction({ type: 'keg' }); Z.kegTaps = 0; } return; }
+    const vt = e.target.closest('button[data-vt]'); if (vt) { vTarget = +vt.dataset.vt; updateStation(); return; }
+    const ev = e.target.closest('button[data-ev]'); if (ev) { if (ev.disabled) return; sendAction({ type: 'vert', ev: ev.dataset.ev, pid: vTarget }); showToast(EVENTS[ev.dataset.ev].i + ' → ' + pubNameOf(vTarget)); return; }
+    if (curStation === 'zapfer' && e.target.closest('#pourArea')) { e.preventDefault(); const P = myPub(); if (P && P.clean <= 0 && Z.level === 0) { showToast('🥛 Kein Glas!', true); return; } Z.pouring = true; return; }
+    if (curStation === 'spueler' && e.target.closest('#washArea')) { e.preventDefault(); WASH.down = true; WASH.lx = e.clientX; WASH.ly = e.clientY; return; }
+    if (curStation === 'kellner') { const b = e.target.closest('.beer[data-bid]'); if (b) { e.preventDefault(); CARRY = { bid: +b.dataset.bid, type: b.dataset.type, x: e.clientX, y: e.clientY, wob: 0 }; tray.style.display = 'flex'; tray.style.left = e.clientX + 'px'; tray.style.top = e.clientY + 'px'; tray.style.borderColor = '#000'; b.style.visibility = 'hidden'; } return; }
+    if (curStation === 'rausschmeisser') { const t = e.target.closest('.trouble[data-tid]'); if (t) { e.preventDefault(); HOLD = { id: +t.dataset.tid, prog: 0 }; } }
+  });
+  st.addEventListener('pointermove', e => {
+    if (WASH.down && curStation === 'spueler') {
+      const d = Math.hypot(e.clientX - WASH.lx, e.clientY - WASH.ly); WASH.lx = e.clientX; WASH.ly = e.clientY; const P = myPub();
+      if (P && P.dirty > 0) { WASH.prog = Math.min(1, WASH.prog + d / 900); $('washBar').style.width = (WASH.prog * 100) + '%'; $('dirt').style.opacity = String(1 - WASH.prog);
+        if (WASH.prog >= 1) { sendAction({ type: 'clean' }); WASH.prog = 0; $('washBar').style.width = '0%'; showToast('✨ +2 €', true); } }
+      return;
+    }
+    if (CARRY && curStation === 'kellner') {
+      const sp = Math.hypot(e.clientX - CARRY.x, e.clientY - CARRY.y); CARRY.x = e.clientX; CARRY.y = e.clientY;
+      CARRY.wob = Math.max(0, CARRY.wob * .9 + (sp > 28 ? sp - 28 : 0));
+      tray.style.left = e.clientX + 'px'; tray.style.top = e.clientY + 'px'; tray.style.borderColor = CARRY.wob > 40 ? '#e63946' : '#000';
+      document.querySelectorAll('.guest.hot').forEach(g => g.classList.remove('hot')); const g = guestAt(e.clientX, e.clientY); if (g) g.classList.add('hot');
+      if (CARRY.wob > 90) { sendAction({ type: 'drop', b: CARRY.bid }); showToast('💦 Umgekippt!'); endCarry(); }
+    }
+  });
+  const up = e => {
+    Z.pouring = false; WASH.down = false;
+    if (HOLD) { HOLD = null; updateStation(); }
+    if (CARRY && curStation === 'kellner') {
+      const g = guestAt(e.clientX, e.clientY);
+      if (g && !g.classList.contains('drink')) { sendAction({ type: 'serve', b: CARRY.bid, g: +g.dataset.gid }); if (g.dataset.type !== CARRY.type) showToast('❌ Falsches Bier!'); }
+      endCarry();
+    }
+  };
+  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up); st.addEventListener('pointerleave', up);
+}
+
+// ---------- Ende ----------
+function onEnd(msg) {
+  inGame = false; CARRY = null; HOLD = null; $('tray').style.display = 'none';
+  $('endPubs').innerHTML = msg.pubs.map(p => `<div class="pub"${msg.winner === p.pid ? ' style="border-color:#b5e853"' : ''}><h3>${msg.winner === p.pid ? '🏆 ' : ''}${esc(p.name)}</h3><div class="small" style="text-align:left">${p.served} Bier serviert · ${p.lost} Gäste vergrault · Ruf ${p.rep}<br>${p.tips} € Trinkgeld${msg.pubs.length > 1 ? ` (${p.per} € pro Kopf)` : ''}</div></div>`).join('');
+  $('ranking').innerHTML = msg.players.map((r, i) => `<div class="member">${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'} ${esc(r.name)}${r.vert ? ' 🎩' : ''}<span>${r.vert ? r.chaos + ' Chaos' : r.tip + ' €' + (r.pub && msg.pubs.length > 1 ? ' · ' + esc(r.pub) : '')}</span></div>`).join('');
+  $('hsList').innerHTML = msg.hs.map(h => `<li>${esc(h.n)} – <b>${h.s} €</b> <span class="small">${esc(h.p)} · ${esc(h.d)}</span></li>`).join('');
+  show('s-end');
+}
+bindControls();
+</script>
+</body>
+</html>
