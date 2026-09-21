@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href='data:application/manifest+json,{"name":"L%C3%B6sch-Meile Duell","short_name":"L%C3%B6sch-Meile","start_url":".","display":"standalone","orientation":"portrait","background_color":"%23e4e1da","theme_color":"%23b4161c","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2712%27 fill=%27%23b4161c%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2752%27 text-anchor=%27middle%27%3E%F0%9F%8D%BA%3C/text%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+ 
 <title>Lösch-Meilen Duell</title>
 <script>
 (function(){
@@ -526,5 +528,37 @@ function onEnd(msg){
 }
 bindControls();
 </script>
+// ===== Schutz gegen versehentliches Verlassen =====
+(function(){
+ let guardOn=false,armed=false,lastBack=0;
+ function guardActive(){return typeof inGame!=='undefined'&&inGame||(typeof isHost!=='undefined'&&isHost&&typeof peer!=='undefined'&&peer);}
+ // 1) Zurück-Geste abfangen: eigenen History-Eintrag setzen, beim Zurück wieder herstellen
+ function arm(){if(armed)return;armed=true;try{history.pushState({guard:1},'');}catch(e){}}
+ window.addEventListener('popstate',()=>{
+  if(!guardActive()){armed=false;return;}
+  const now=Date.now();
+  if(now-lastBack<1500){armed=false;return;}   // zweimal schnell zurück = wirklich verlassen
+  lastBack=now;try{history.pushState({guard:1},'');}catch(e){}
+  const t=document.getElementById('toast');
+  if(t){t.textContent=(typeof isHost!=='undefined'&&isHost)?'⚠️ Du bist Host! Zweimal zurück beendet das Spiel für alle.':'⚠️ Spiel läuft – zweimal zurück zum Verlassen';t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+ });
+ // 2) Tab schließen / neu laden: Browser-Rückfrage
+ window.addEventListener('beforeunload',e=>{if(!guardActive())return;e.preventDefault();e.returnValue='Spiel läuft – wirklich verlassen?';return e.returnValue;});
+ // 3) Regelmäßig prüfen, ob der Schutz aktiv sein soll
+ setInterval(()=>{const a=guardActive();if(a&&!guardOn){guardOn=true;arm();}if(!a&&guardOn){guardOn=false;armed=false;}},500);
+ // 4) Hinweis im Warteraum: als App installieren (Homescreen)
+ const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+ let deferred=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;showInstallHint();});
+ function showInstallHint(){
+  if(standalone||document.getElementById('installHint'))return;
+  const wait=document.getElementById('s-wait');if(!wait)return;
+  const d=document.createElement('div');d.id='installHint';d.className='small';d.style.cssText='background:#2b1a0e;color:#ffd97a;border-radius:.6em;padding:.6em .8em;border:3px solid #000;margin-top:.3em;text-align:left';
+  d.innerHTML=isIOS?'📌 <b>Tipp für den Host:</b> In Safari unten auf <b>Teilen</b> → <b>„Zum Home-Bildschirm“</b>. Dann läuft das Spiel ohne Browser-Leiste und kann nicht weggewischt werden.':'📌 <b>Tipp für den Host:</b> Spiel als App installieren – dann kein versehentliches Schließen. <button id="installBtn" style="margin-top:.4em">Auf den Startbildschirm</button>';
+  wait.insertBefore(d,wait.firstChild.nextSibling);
+  const b=document.getElementById('installBtn');if(b)b.onclick=()=>{if(deferred){deferred.prompt();deferred=null;}b.textContent='Über Browser-Menü ⋮ → „App installieren“';};
+ }
+ if(isIOS)setTimeout(showInstallHint,800);
+})();
+ 
 </body>
 </html>
